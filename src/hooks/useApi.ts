@@ -80,6 +80,9 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Base URL for API calls (can be empty for same-origin)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
 // Custom hook for fetching categories
 export function useCategories(options?: {
   featured?: boolean;
@@ -101,7 +104,7 @@ export function useCategories(options?: {
         if (options?.limit) params.append('limit', options.limit.toString());
         if (options?.sort) params.append('sort', options.sort);
         
-        const response = await fetch(`/api/categories?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/categories?${params}`);
         const result: ApiResponse<Category[]> = await response.json();
         
         if (result.success) {
@@ -147,7 +150,7 @@ export function useCategorySearch(query: string, options?: {
         params.append('q', query);
         if (options?.limit) params.append('limit', options.limit.toString());
         
-        const response = await fetch(`/api/categories/search?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/categories/search?${params}`);
         const result: ApiResponse<Category[]> = await response.json();
         
         if (result.success) {
@@ -212,7 +215,7 @@ export function useProducts(options?: {
         if (options?.order) params.append('order', options.order);
         if (options?.search) params.append('search', options.search);
         
-        const response = await fetch(`/api/products?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/products?${params}`);
         const result: ApiResponse<Product[]> = await response.json();
         
         if (result.success) {
@@ -263,7 +266,7 @@ export function useProduct(slug: string) {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/products/${slug}`);
+        const response = await fetch(`${API_BASE_URL}/api/products/${slug}`);
         const result: ApiResponse<Product> = await response.json();
         
         if (result.success) {
@@ -298,7 +301,7 @@ export function useCategory(slug: string) {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/categories/${slug}`);
+        const response = await fetch(`${API_BASE_URL}/api/categories/${slug}`);
         const result: ApiResponse<Category> = await response.json();
         
         if (result.success) {
