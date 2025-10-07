@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Button, Badge } from '../ui';
 import { AuthModal } from '../auth/AuthModal';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useGlobalSearch } from '@/hooks/useApi';
 import { IssueManager, SystemIssue, getIssuesForEnvironment, getHighestSeverity } from '@/lib/issue-manager';
 
 // Notification types
@@ -200,6 +201,8 @@ export const Header: React.FC = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [systemIssues, setSystemIssues] = useState<SystemIssue[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { results: globalResults, loading: globalLoading } = useGlobalSearch(searchQuery, { limit: 6, debounceMs: 250 });
   
   const { user, isAuthenticated, logout } = useAuthContext();
 
@@ -407,7 +410,9 @@ export const Header: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="جستجو در محصولات..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="جستجو در محصولات و دسته‌بندی‌ها..."
                 className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -415,6 +420,56 @@ export const Header: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
+
+              {searchQuery.trim().length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden">
+                  {globalLoading ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">در حال جستجو...</div>
+                  ) : (
+                    <div className="max-h-96 overflow-y-auto">
+                      {/* Categories */}
+                      {globalResults.categories.length > 0 && (
+                        <div className="py-2">
+                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">دسته‌بندی‌ها</div>
+                          {globalResults.categories.map((c) => (
+                            <Link key={c.slug} href={`/categories/${c.slug}`} className="flex items-center px-4 py-2 hover:bg-gray-50">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate">{c.name}</div>
+                                <div className="text-xs text-gray-500 truncate">{c.productCount} محصول</div>
+                              </div>
+                              <svg className="w-4 h-4 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                              </svg>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Products */}
+                      {globalResults.products.length > 0 && (
+                        <div className="py-2 border-t border-gray-100">
+                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">محصولات</div>
+                          {globalResults.products.map((p) => (
+                            <Link key={p.slug} href={`/products/${p.slug}`} className="flex items-center px-4 py-2 hover:bg-gray-50">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate">{p.name}</div>
+                                <div className="text-xs text-gray-500 truncate">{p.price?.toLocaleString?.('fa-IR')} تومان</div>
+                              </div>
+                              <svg className="w-4 h-4 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                              </svg>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      {globalResults.categories.length === 0 && globalResults.products.length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500">نتیجه‌ای یافت نشد</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -535,7 +590,9 @@ export const Header: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="جستجو در محصولات..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="جستجو در محصولات و دسته‌بندی‌ها..."
                 className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -543,6 +600,42 @@ export const Header: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
+
+              {searchQuery.trim().length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden">
+                  {globalLoading ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">در حال جستجو...</div>
+                  ) : (
+                    <div className="max-h-96 overflow-y-auto">
+                      {globalResults.categories.length > 0 && (
+                        <div className="py-2">
+                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">دسته‌بندی‌ها</div>
+                          {globalResults.categories.map((c) => (
+                            <Link key={c.slug} href={`/categories/${c.slug}`} className="block px-4 py-2 hover:bg-gray-50">
+                              <div className="text-sm font-medium text-gray-900">{c.name}</div>
+                              <div className="text-xs text-gray-500">{c.productCount} محصول</div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                      {globalResults.products.length > 0 && (
+                        <div className="py-2 border-t border-gray-100">
+                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">محصولات</div>
+                          {globalResults.products.map((p) => (
+                            <Link key={p.slug} href={`/products/${p.slug}`} className="block px-4 py-2 hover:bg-gray-50">
+                              <div className="text-sm font-medium text-gray-900">{p.name}</div>
+                              <div className="text-xs text-gray-500">{p.price?.toLocaleString?.('fa-IR')} تومان</div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                      {globalResults.categories.length === 0 && globalResults.products.length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500">نتیجه‌ای یافت نشد</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -171,6 +171,48 @@ export function useCategorySearch(query: string, options?: {
   return { results, loading, error };
 }
 
+// Global search (products + categories)
+export function useGlobalSearch(query: string, options?: { limit?: number; debounceMs?: number; }) {
+  const [results, setResults] = useState<{ products: Product[]; categories: Category[] }>({ products: [], categories: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!query || query.trim().length < 2) {
+      setResults({ products: [], categories: [] });
+      setLoading(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const params = new URLSearchParams();
+        params.append('q', query);
+        if (options?.limit) params.append('limit', String(options.limit));
+
+        const response = await fetch(`${API_BASE_URL}/api/search?${params}`);
+        const json = await response.json();
+        if (json.success) {
+          setResults(json.data);
+        } else {
+          setError(json.error || 'Search failed');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }, options?.debounceMs ?? 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [query, options?.limit, options?.debounceMs]);
+
+  return { results, loading, error };
+}
+
 // Custom hook for fetching products
 export function useProducts(options?: {
   page?: number;

@@ -1,54 +1,75 @@
-import { NextRequest } from 'next/server';
-import { createSuccessResponse, createErrorResponse } from '@/lib/api/utils';
-import { db } from '@/lib/database';
-import { Category } from '@/lib/database/models';
+import { NextRequest, NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/mongodb';
+import { Category, Product } from '@/lib/models';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
+    await connectToDatabase();
 
-    if (!query || query.length < 2) {
-      return createErrorResponse('Search query must be at least 2 characters', 400);
+    const { searchParams } = new URL(request.url);
+    const q = searchParams.get('q')?.trim() || '';
+    const limitParam = searchParams.get('limit');
+    const limit = Math.min(parseInt(limitParam || '10', 10), 25);
+
+    if (q.length < 2) {
+      return NextResponse.json({ success: true, data: { products: [], categories: [] }, query: q, total: 0 });
     }
 
-    const posts = await db.getPublishedPosts();
-    const categories = await db.findAll<Category>('categories');
+    const re = new RegExp(q, 'i');
 
-    const searchResults = {
-      posts: posts.filter(post => 
-        post.title.toLowerCase().includes(query.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-        post.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-      ).map(post => ({
-        id: post.id,
-        title: post.title,
-        slug: post.slug,
-        excerpt: post.excerpt,
-        category: post.categoryId,
-        tags: post.tags,
-        publishedAt: post.publishedAt,
-        url: `/posts/${post.slug}`,
+    const [products, categories] = await Promise.all([
+      Product.find({
+        isActive: true,
+        $or: [
+          { name: re },
+          { nameEn: re },
+          { description: re },
+          { slug: re }
+        ]
+      })
+        .select('name nameEn slug price images rating reviewCount')
+        .sort({ rating: -1, reviewCount: -1 })
+        .limit(limit)
+        .exec(),
+      Category.find({
+        isActive: true,
+        $or: [
+          { name: re },
+          { nameEn: re },
+          { description: re },
+          { slug: re }
+        ]
+      })
+        .select('name nameEn slug description image productCount')
+        .sort({ productCount: -1, sortOrder: 1 })
+        .limit(limit)
+        .exec()
+    ]);
+
+    const data = {
+      products: products.map(p => ({
+        id: p._id,
+        name: p.name,
+        slug: p.slug,
+        price: p.price,
+        images: p.images,
+        rating: p.rating,
+        reviewCount: p.reviewCount,
+        url: `/products/${p.slug}`
       })),
-      categories: categories.filter(category =>
-        category.name.toLowerCase().includes(query.toLowerCase()) ||
-        category.description.toLowerCase().includes(query.toLowerCase())
-      ).map(category => ({
-        id: category.id,
-        name: category.name,
-        slug: category.slug,
-        description: category.description,
-        url: `/categories/${category.slug}`,
-      })),
+      categories: categories.map(c => ({
+        id: c._id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        image: c.image,
+        productCount: c.productCount,
+        url: `/categories/${c.slug}`
+      }))
     };
 
-    return createSuccessResponse({
-      query,
-      results: searchResults,
-      totalResults: searchResults.posts.length + searchResults.categories.length,
-    });
-
-  } catch (_error) {
-    return createErrorResponse('Search failed', 500);
+    return NextResponse.json({ success: true, data, query: q, total: data.products.length + data.categories.length });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Search failed' }, { status: 500 });
   }
 }
