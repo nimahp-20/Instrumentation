@@ -210,7 +210,8 @@ class AuthService {
     if (!tokens) return true;
 
     const now = Math.floor(Date.now() / 1000);
-    return now >= tokens.expiresIn;
+    // Add small buffer to avoid races with network latency (30s)
+    return now >= (tokens.expiresIn - 30);
   }
 
   getCurrentUser(): User | null {
