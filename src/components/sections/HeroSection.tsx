@@ -64,21 +64,25 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                size="lg"
-                className="bg-amber-400 text-slate-900 hover:bg-amber-300 focus:ring-2 focus:ring-amber-300/40 !px-6 !py-3 rounded-xl shadow-[0_10px_30px_-10px_rgba(251,191,36,0.6)]"
-                onClick={onPrimaryClick}
-              >
-                {primaryButtonText}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-white/30 text-white hover:bg-white/10 hover:border-white/40 backdrop-blur-sm !px-6 !py-3 rounded-xl"
-                onClick={onSecondaryClick}
-              >
-                {secondaryButtonText}
-              </Button>
+              <Link href="/products" className="inline-block">
+                <Button
+                  size="lg"
+                  className="bg-amber-400 text-slate-900 hover:bg-amber-300 focus:ring-2 focus:ring-amber-300/40 !px-6 !py-3 rounded-xl shadow-[0_10px_30px_-10px_rgba(251,191,36,0.6)]"
+                  onClick={onPrimaryClick}
+                >
+                  {primaryButtonText}
+                </Button>
+              </Link>
+              <Link href="/#categories" className="inline-block">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-white/30 text-white hover:bg-white/10 hover:border-white/40 backdrop-blur-sm !px-6 !py-3 rounded-xl"
+                  onClick={onSecondaryClick}
+                >
+                  {secondaryButtonText}
+                </Button>
+              </Link>
             </div>
 
             {/* Gentleman detail list */}
