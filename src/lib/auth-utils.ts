@@ -1,16 +1,16 @@
 import jwt from 'jsonwebtoken';
 
-// JWT secrets MUST be provided via environment variables
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not set. Define it in environment variables');
+// Ensure env vars exist and are typed as strings
+function requireEnv(name: 'JWT_SECRET' | 'JWT_REFRESH_SECRET'): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is not set. Define it in environment variables`);
+  }
+  return value;
 }
 
-if (!JWT_REFRESH_SECRET) {
-  throw new Error('JWT_REFRESH_SECRET is not set. Define it in environment variables');
-}
+const JWT_SECRET: string = requireEnv('JWT_SECRET');
+const JWT_REFRESH_SECRET: string = requireEnv('JWT_REFRESH_SECRET');
 
 // Token expiration times
 const ACCESS_TOKEN_EXPIRES_IN = '15m'; // 15 minutes
