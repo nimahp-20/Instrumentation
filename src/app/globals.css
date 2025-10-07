@@ -161,3 +161,8 @@ p {
   font-family: var(--font-iran-sans);
   line-height: 1.6;
 }
+
+/* Smooth scrolling for in-page anchors */
+html {
+  scroll-behavior: smooth;
+}
