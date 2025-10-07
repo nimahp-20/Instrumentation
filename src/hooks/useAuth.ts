@@ -50,6 +50,8 @@ export interface ApiResponse<T = any> {
 class AuthService {
   private static instance: AuthService;
   private baseUrl = '/api/auth';
+  private isRefreshing = false;
+  private refreshPromise: Promise<ApiResponse<{ tokens: AuthTokens }>> | null = null;
 
   static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -104,7 +106,19 @@ class AuthService {
     };
 
     if (tokens?.accessToken) {
-      headers.Authorization = `Bearer ${tokens.accessToken}`;
+      // Proactive refresh if token about to expire (buffer 20s)
+      const now = Math.floor(Date.now() / 1000);
+      const exp = tokens.expiresIn;
+      const buffer = 20; // seconds
+      if (exp - now <= buffer) {
+        await this.ensureRefreshed();
+        const updated = this.getTokens();
+        if (updated?.accessToken) {
+          headers.Authorization = `Bearer ${updated.accessToken}`;
+        }
+      } else {
+        headers.Authorization = `Bearer ${tokens.accessToken}`;
+      }
     }
 
     try {
@@ -117,7 +131,7 @@ class AuthService {
 
       // If token is expired, try to refresh
       if (response.status === 401 && tokens?.refreshToken && endpoint !== '/refresh') {
-        const refreshResult = await this.refreshToken();
+        const refreshResult = await this.ensureRefreshed();
         if (refreshResult.success) {
           // Retry the original request with new token
           headers.Authorization = `Bearer ${refreshResult.data!.tokens.accessToken}`;
@@ -200,6 +214,18 @@ class AuthService {
     return response;
   }
 
+  async ensureRefreshed(): Promise<ApiResponse<{ tokens: AuthTokens }>> {
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
+    }
+    this.isRefreshing = true;
+    this.refreshPromise = this.refreshToken().finally(() => {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    });
+    return this.refreshPromise;
+  }
+
   async getProfile(): Promise<ApiResponse<{ user: User }>> {
     return this.apiCall<{ user: User }>('/profile');
   }
@@ -266,7 +292,7 @@ export function useAuth() {
           });
         } else if (tokens && authService.isTokenExpired()) {
           // Try to refresh token
-          const refreshResult = await authService.refreshToken();
+          const refreshResult = await authService.ensureRefreshed();
           if (refreshResult.success && refreshResult.data) {
             const profileResult = await authService.getProfile();
             if (profileResult.success && profileResult.data) {
