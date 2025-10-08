@@ -31,9 +31,15 @@ async function connectDB(): Promise<typeof mongoose> {
       bufferCommands: false,
     };
 
+    console.log('🔌 Attempting to connect to MongoDB...');
+    console.log('📍 MongoDB URI:', MONGODB_URI.replace(/\/\/.*@/, '//***:***@')); // Hide credentials in logs
+
     cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ Connected to MongoDB');
+      console.log('✅ Connected to MongoDB successfully');
       return mongoose;
+    }).catch((error) => {
+      console.error('❌ MongoDB connection failed:', error.message);
+      throw error;
     });
   }
 
@@ -41,6 +47,7 @@ async function connectDB(): Promise<typeof mongoose> {
     cached!.conn = await cached!.promise;
   } catch (e) {
     cached!.promise = null;
+    console.error('❌ MongoDB connection error:', e);
     throw e;
   }
 

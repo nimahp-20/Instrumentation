@@ -21,7 +21,7 @@ async function seedDatabase() {
         password: 'AdminPass123!', // Let the pre-save hook hash it
         firstName: 'Admin',
         lastName: 'User',
-        phone: '1234567890',
+        phone: '09123456789', // Valid Iranian mobile number
         role: 'admin',
         isActive: true,
         emailVerified: true
@@ -32,16 +32,22 @@ async function seedDatabase() {
     // Create sample categories
     const techCategory = await Category.create({
       name: 'Technology',
+      nameEn: 'Technology',
       slug: 'technology',
       description: 'Latest technology news and updates',
+      descriptionEn: 'Latest technology news and updates',
+      image: 'https://via.placeholder.com/300x200?text=Technology',
       seoTitle: 'Technology News',
       seoDescription: 'Stay updated with the latest technology trends and news',
     });
 
     const webDevCategory = await Category.create({
       name: 'Web Development',
+      nameEn: 'Web Development',
       slug: 'web-development',
       description: 'Web development tutorials and guides',
+      descriptionEn: 'Web development tutorials and guides',
+      image: 'https://via.placeholder.com/300x200?text=Web+Development',
       seoTitle: 'Web Development Tutorials',
       seoDescription: 'Learn web development with our comprehensive tutorials',
     });
