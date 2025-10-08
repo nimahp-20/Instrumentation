@@ -4,6 +4,7 @@ import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/contexts/AuthContext';
+import FetchInterceptorClient from '@/components/FetchInterceptorClient';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,11 +42,12 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-iran-sans antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} font-iran-sans antialiased flex flex-col min-h-screen`}
       >
         <AuthProvider>
+          <FetchInterceptorClient />
           <Header />
-          <main>{children}</main>
+          <main className="flex-grow">{children}</main>
           <Footer />
         </AuthProvider>
       </body>

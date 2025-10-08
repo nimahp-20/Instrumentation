@@ -154,29 +154,7 @@ const HomePage: React.FC = () => {
         description="طیف گسترده‌ای از دسته‌بندی‌های ابزار را کاوش کنید تا دقیقاً آنچه برای پروژه خود نیاز دارید را پیدا کنید"
         loading={categoriesLoading}
       />
-      {/* <FeaturedProductsSection
-        products={products.map(product => ({
-          id: product._id,
-          name: product.name,
-          slug: product.slug,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          images: product.images,
-          rating: product.rating,
-          reviewCount: product.reviewCount,
-          discount: product.discount,
-          stock: product.stock
-        }))}
-        title="محصولات ویژه"
-        description="محبوب‌ترین و با بالاترین امتیاز ابزارهای ما را کشف کنید"
-        viewAllText="مشاهده همه محصولات"
-        onAddToCart={(id: string) => console.log('افزودن به سبد:', id)}
-        onViewProduct={(slug: string) => console.log('مشاهده محصول:', slug)}
-        onViewAll={() => console.log('مشاهده همه محصولات')}
-        loading={productsLoading}
-      /> */}
 
-      {/* New Filtering Features Section - Modern Design */}
       <section className="relative py-20 overflow-hidden">
         {/* Background with gradient and patterns */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">

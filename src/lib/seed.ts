@@ -7,20 +7,27 @@ async function seedDatabase() {
     await connectDB();
     console.log('🌱 Starting database seeding for "tools" database...');
 
-    // Check if data already exists
-    const existingUsers = await User.countDocuments();
-    if (existingUsers > 0) {
-      console.log('✅ Database already has data, skipping seed');
-      return;
+    // Check if admin user already exists
+    let user = await User.findOne({ email: 'admin@example.com' });
+    if (user) {
+      console.log('✅ Admin user already exists, updating password...');
+      user.password = 'AdminPass123!'; // Let the pre-save hook hash it
+      await user.save();
+      console.log('✅ Admin user password updated');
+    } else {
+      console.log('✅ Creating new admin user...');
+      user = await User.create({
+        email: 'admin@example.com',
+        password: 'AdminPass123!', // Let the pre-save hook hash it
+        firstName: 'Admin',
+        lastName: 'User',
+        phone: '1234567890',
+        role: 'admin',
+        isActive: true,
+        emailVerified: true
+      });
+      console.log('✅ Created admin user');
     }
-
-    // Create sample user
-    const user = await User.create({
-      email: 'admin@example.com',
-      name: 'Admin User',
-      role: 'admin',
-    });
-    console.log('✅ Created admin user');
 
     // Create sample categories
     const techCategory = await Category.create({

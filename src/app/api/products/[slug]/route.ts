@@ -5,13 +5,14 @@ import { Product } from '@/lib/models';
 // GET /api/products/[slug] - Get product by slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { slug } = await params;
     
     const product = await Product.findOne({ 
-      slug: params.slug, 
+      slug: slug, 
       isActive: true 
     })
     .populate('category', 'name nameEn slug')
@@ -42,15 +43,16 @@ export async function GET(
 // PUT /api/products/[slug] - Update product
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { slug } = await params;
     
     const body = await request.json();
     
     const product = await Product.findOneAndUpdate(
-      { slug: params.slug },
+      { slug: slug },
       body,
       { new: true, runValidators: true }
     )
@@ -82,12 +84,13 @@ export async function PUT(
 // DELETE /api/products/[slug] - Delete product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { slug } = await params;
     
-    const product = await Product.findOneAndDelete({ slug: params.slug });
+    const product = await Product.findOneAndDelete({ slug: slug });
     
     if (!product) {
       return NextResponse.json(

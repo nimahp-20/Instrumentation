@@ -5,17 +5,17 @@ import { verifyRefreshToken, generateTokenPair } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { refreshToken } = body;
+    // Get refresh token from HTTP-only cookie
+    const refreshToken = request.cookies.get('refreshToken')?.value;
 
     // Validation
     if (!refreshToken) {
       return NextResponse.json(
         { 
           success: false, 
-          message: 'توکن بازخوانی الزامی است' 
+          message: 'توکن بازخوانی یافت نشد' 
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
@@ -27,22 +27,22 @@ export async function POST(request: NextRequest) {
           success: false, 
           message: 'توکن بازخوانی نامعتبر یا منقضی شده است' 
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
     // Connect to database
     await connectToDatabase();
 
-    // Find user
-    const user = await User.findById(payload.userId);
+    // Find user and include hashedRefreshToken
+    const user = await User.findById(payload.userId).select('+hashedRefreshToken');
     if (!user || !user.isActive) {
       return NextResponse.json(
         { 
           success: false, 
           message: 'کاربر یافت نشد یا حساب غیرفعال است' 
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
@@ -53,7 +53,19 @@ export async function POST(request: NextRequest) {
           success: false, 
           message: 'توکن بازخوانی منقضی شده است. لطفاً مجدداً وارد شوید' 
         },
-        { status: 401 }
+        { status: 403 }
+      );
+    }
+
+    // Verify refresh token against hashed version in database
+    const isRefreshTokenValid = await user.compareRefreshToken(refreshToken);
+    if (!isRefreshTokenValid) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'توکن بازخوانی نامعتبر است' 
+        },
+        { status: 403 }
       );
     }
 
@@ -65,21 +77,34 @@ export async function POST(request: NextRequest) {
       user.tokenVersion
     );
 
+    // Save new hashed refresh token to database
+    await user.setRefreshToken(tokens.refreshToken);
+
     // Return success response
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         message: 'توکن‌ها با موفقیت بازخوانی شدند',
         data: {
           tokens: {
             accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
             expiresIn: tokens.expiresIn
           }
         }
       },
       { status: 200 }
     );
+
+    // Set new HTTP-only cookie for refresh token
+    response.cookies.set('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 2 * 60, // 2 minutes for testing
+      path: '/'
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Refresh token error:', error);

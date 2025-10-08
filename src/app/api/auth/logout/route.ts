@@ -22,15 +22,29 @@ async function logoutHandler(request: AuthenticatedRequest) {
     if (logoutAll) {
       // Increment token version to invalidate all refresh tokens
       await user.incrementTokenVersion();
+    } else {
+      // Clear current refresh token
+      await user.clearRefreshToken();
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         message: logoutAll ? 'از تمام دستگاه‌ها خارج شدید' : 'با موفقیت خارج شدید'
       },
       { status: 200 }
     );
+
+    // Clear refresh token cookie
+    response.cookies.set('refreshToken', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0, // Expire immediately
+      path: '/'
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Logout error:', error);

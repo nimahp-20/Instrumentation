@@ -14,7 +14,7 @@ export interface AuthenticatedRequest extends NextRequest {
 /**
  * Authentication middleware
  */
-export async function withAuth(
+export function withAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
   options: { requireAuth?: boolean; roles?: string[] } = {}
 ) {
@@ -109,7 +109,7 @@ export async function withAuth(
 /**
  * Optional authentication middleware (doesn't fail if no token)
  */
-export async function withOptionalAuth(
+export function withOptionalAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
   return withAuth(handler, { requireAuth: false });
@@ -118,7 +118,7 @@ export async function withOptionalAuth(
 /**
  * Admin only middleware
  */
-export async function withAdminAuth(
+export function withAdminAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
   return withAuth(handler, { roles: ['admin'] });
@@ -127,7 +127,7 @@ export async function withAdminAuth(
 /**
  * Admin or Moderator middleware
  */
-export async function withModeratorAuth(
+export function withModeratorAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
   return withAuth(handler, { roles: ['admin', 'moderator'] });

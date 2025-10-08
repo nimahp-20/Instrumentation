@@ -5,13 +5,14 @@ import { Category } from '@/lib/models';
 // GET /api/categories/[slug] - Get category by slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { slug } = await params;
     
     const category = await Category.findOne({ 
-      slug: params.slug, 
+      slug: slug, 
       isActive: true 
     }).select('-__v');
     
@@ -39,15 +40,16 @@ export async function GET(
 // PUT /api/categories/[slug] - Update category
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { slug } = await params;
     
     const body = await request.json();
     
     const category = await Category.findOneAndUpdate(
-      { slug: params.slug },
+      { slug: slug },
       body,
       { new: true, runValidators: true }
     ).select('-__v');
@@ -76,12 +78,13 @@ export async function PUT(
 // DELETE /api/categories/[slug] - Delete category
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { slug } = await params;
     
-    const category = await Category.findOneAndDelete({ slug: params.slug });
+    const category = await Category.findOneAndDelete({ slug: slug });
     
     if (!category) {
       return NextResponse.json(

@@ -5,8 +5,18 @@ import { AuthForm } from '@/components/auth/AuthForm';
 
 export default function LoginPage() {
   const handleSuccess = () => {
-    // Redirect to dashboard or home page
-    window.location.href = '/';
+    // Check if there's a redirect URL stored (from auth expiration)
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    
+    if (redirectUrl) {
+      // Clear the stored redirect URL
+      sessionStorage.removeItem('redirectAfterLogin');
+      // Redirect back to the original page
+      window.location.href = redirectUrl;
+    } else {
+      // Redirect to home page
+      window.location.href = '/';
+    }
   };
 
   const handleError = (error: string) => {

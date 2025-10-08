@@ -87,6 +87,9 @@ export async function POST(request: NextRequest) {
       user.tokenVersion
     );
 
+    // Save hashed refresh token to database
+    await user.setRefreshToken(tokens.refreshToken);
+
     // Update last login
     user.lastLogin = new Date();
     await user.save();
@@ -110,13 +113,21 @@ export async function POST(request: NextRequest) {
           },
           tokens: {
             accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
             expiresIn: tokens.expiresIn
           }
         }
       },
       { status: 200 }
     );
+
+    // Set HTTP-only cookie for refresh token
+    response.cookies.set('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 2 * 60, // 2 minutes for testing
+      path: '/'
+    });
     
     return addSecurityHeaders(response);
 

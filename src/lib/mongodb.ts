@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tools';
 
-if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI is not set. Define it in environment variables (e.g., .env.local)');
+if (!process.env.MONGODB_URI) {
+  console.warn('⚠️ MONGODB_URI not set in environment variables, using default: mongodb://localhost:27017/tools');
 }
 
 interface MongooseCache {

@@ -11,12 +11,16 @@ export interface IUser extends Document {
   isActive: boolean;
   emailVerified: boolean;
   tokenVersion: number;
+  hashedRefreshToken?: string;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
   
   // Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
+  compareRefreshToken(candidateToken: string): Promise<boolean>;
+  setRefreshToken(token: string): Promise<void>;
+  clearRefreshToken(): Promise<void>;
   toJSON(): Partial<IUser>;
 }
 
@@ -68,6 +72,10 @@ const UserSchema = new Schema<IUser>({
     type: Number,
     default: 1
   },
+  hashedRefreshToken: {
+    type: String,
+    // select: false // Temporarily disabled for debugging
+  },
   lastLogin: {
     type: Date
   }
@@ -77,6 +85,7 @@ const UserSchema = new Schema<IUser>({
     transform: function(doc: any, ret: any) {
       delete ret.password;
       delete ret.tokenVersion;
+      delete ret.hashedRefreshToken;
       delete ret.__v;
       return ret;
     }
@@ -108,6 +117,39 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
     throw new Error('خطا در مقایسه رمز عبور');
+  }
+};
+
+// Method to compare refresh token
+UserSchema.methods.compareRefreshToken = async function(candidateToken: string): Promise<boolean> {
+  try {
+    if (!this.hashedRefreshToken) return false;
+    const bcrypt = require('bcryptjs');
+    return await bcrypt.compare(candidateToken, this.hashedRefreshToken);
+  } catch (error) {
+    throw new Error('خطا در مقایسه توکن بازخوانی');
+  }
+};
+
+// Method to set refresh token (hash and save)
+UserSchema.methods.setRefreshToken = async function(token: string): Promise<void> {
+  try {
+    const bcrypt = require('bcryptjs');
+    const saltRounds = 12;
+    this.hashedRefreshToken = await bcrypt.hash(token, saltRounds);
+    await this.save();
+  } catch (error) {
+    throw new Error('خطا در ذخیره توکن بازخوانی');
+  }
+};
+
+// Method to clear refresh token
+UserSchema.methods.clearRefreshToken = async function(): Promise<void> {
+  try {
+    this.hashedRefreshToken = undefined;
+    await this.save();
+  } catch (error) {
+    throw new Error('خطا در پاک کردن توکن بازخوانی');
   }
 };
 

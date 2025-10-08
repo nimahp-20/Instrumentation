@@ -94,55 +94,127 @@ class AuthService {
     localStorage.removeItem('tokenExpiresIn');
   }
 
-  // API calls
+  // Raw API call without token refresh logic (used for refresh token calls)
+  private async rawApiCall<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+        credentials: 'include', // Include cookies for refresh token
+      });
+
+      // Handle 403 for refresh endpoint - token expired
+      if (response.status === 403 && endpoint === '/refresh') {
+        console.log('🚨 Refresh token expired (403), clearing auth data');
+        this.clearTokens();
+        this.clearUser();
+        
+        // Dispatch event to notify app
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('authExpired'));
+          // Save current URL to redirect back after login
+          const currentPath = window.location.pathname + window.location.search;
+          if (currentPath !== '/login' && currentPath !== '/register') {
+            sessionStorage.setItem('redirectAfterLogin', currentPath);
+          }
+        }
+        
+        return {
+          success: false,
+          message: 'توکن بازخوانی منقضی شده است. لطفاً مجدداً وارد شوید',
+          code: 'REFRESH_TOKEN_EXPIRED'
+        };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Raw API call error:', error);
+      return {
+        success: false,
+        message: 'خطای شبکه - لطفاً اتصال اینترنت خود را بررسی کنید'
+      };
+    }
+  }
+
+  // API calls with automatic 401 interceptor and token refresh
   private async apiCall<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
+    console.log('🔗 apiCall called with endpoint:', endpoint);
     const tokens = this.getTokens();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
+    // Add access token to headers if available
     if (tokens?.accessToken) {
-      // Proactive refresh if token about to expire (buffer 20s)
-      const now = Math.floor(Date.now() / 1000);
-      const exp = tokens.expiresIn;
-      const buffer = 20; // seconds
-      if (exp - now <= buffer) {
-        await this.ensureRefreshed();
-        const updated = this.getTokens();
-        if (updated?.accessToken) {
-          headers.Authorization = `Bearer ${updated.accessToken}`;
-        }
-      } else {
-        headers.Authorization = `Bearer ${tokens.accessToken}`;
-      }
+      headers.Authorization = `Bearer ${tokens.accessToken}`;
     }
 
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers,
+        credentials: 'include', // Include cookies for refresh token
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+        const textResponse = await response.text();
+        console.error('Response text:', textResponse);
+        
+        return {
+          success: false,
+          message: 'خطای سرور - پاسخ نامعتبر دریافت شد'
+        };
+      }
 
-      // If token is expired, try to refresh
-      if (response.status === 401 && tokens?.refreshToken && endpoint !== '/refresh') {
+      // 401 Interceptor: If token is expired, try to refresh automatically
+      if (response.status === 401 && endpoint !== '/refresh') {
+        console.log('🚨 401 INTERCEPTOR TRIGGERED!');
+        console.log('Endpoint:', endpoint);
+        console.log('Response status:', response.status);
+        console.log('Response data:', data);
+        console.log('Attempting automatic token refresh...');
+        
         const refreshResult = await this.ensureRefreshed();
+        console.log('Refresh result:', refreshResult);
+        
         if (refreshResult.success) {
-          // Retry the original request with new token
+          console.log('✅ Token refresh successful, retrying original request...');
+          // Retry the original request with new access token
           headers.Authorization = `Bearer ${refreshResult.data!.tokens.accessToken}`;
           const retryResponse = await fetch(`${this.baseUrl}${endpoint}`, {
             ...options,
             headers,
+            credentials: 'include',
           });
-          return await retryResponse.json();
+          const retryData = await retryResponse.json();
+          console.log('✅ Retry successful, returning data:', retryData);
+          return retryData;
         } else {
-          // Refresh failed, clear tokens
+          console.log('❌ Token refresh failed, clearing tokens');
+          // Refresh failed, clear tokens and return error
           this.clearTokens();
+          return {
+            success: false,
+            message: 'توکن منقضی شده و امکان بازخوانی وجود ندارد'
+          };
         }
       }
 
@@ -158,12 +230,14 @@ class AuthService {
 
   // Authentication methods
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
-    const response = await this.apiCall<{ user: User; tokens: AuthTokens }>('/login', {
+    // Use rawApiCall for login to avoid token refresh logic
+    const response = await this.rawApiCall<{ user: User; tokens: AuthTokens }>('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
 
     if (response.success && response.data) {
+      // Only store access token, refresh token is in HTTP-only cookie
       this.setTokens(response.data.tokens);
     }
 
@@ -171,12 +245,14 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
-    const response = await this.apiCall<{ user: User; tokens: AuthTokens }>('/register', {
+    // Use rawApiCall for register to avoid token refresh logic
+    const response = await this.rawApiCall<{ user: User; tokens: AuthTokens }>('/register', {
       method: 'POST',
       body: JSON.stringify(data),
     });
 
     if (response.success && response.data) {
+      // Only store access token, refresh token is in HTTP-only cookie
       this.setTokens(response.data.tokens);
     }
 
@@ -194,30 +270,50 @@ class AuthService {
   }
 
   async refreshToken(): Promise<ApiResponse<{ tokens: AuthTokens }>> {
-    const tokens = this.getTokens();
-    if (!tokens?.refreshToken) {
-      return {
-        success: false,
-        message: 'توکن بازخوانی یافت نشد'
-      };
-    }
-
-    const response = await this.apiCall<{ tokens: AuthTokens }>('/refresh', {
+    console.log('🔄 refreshToken called - making request to /refresh endpoint');
+    
+    // Use rawApiCall to avoid circular dependency
+    // Refresh token is now sent automatically via HTTP-only cookie
+    const response = await this.rawApiCall<{ tokens: AuthTokens }>('/refresh', {
       method: 'POST',
-      body: JSON.stringify({ refreshToken: tokens.refreshToken }),
     });
 
+    console.log('🔄 refreshToken response:', response);
+
     if (response.success && response.data) {
+      console.log('✅ Refresh successful, setting new tokens');
       this.setTokens(response.data.tokens);
+    } else {
+      console.log('❌ Refresh failed:', response.message);
     }
 
     return response;
   }
 
   async ensureRefreshed(): Promise<ApiResponse<{ tokens: AuthTokens }>> {
+    console.log('🔄 ensureRefreshed called');
+    
+    // Prevent multiple simultaneous refresh attempts
     if (this.isRefreshing && this.refreshPromise) {
+      console.log('⏳ Already refreshing, waiting for existing promise...');
       return this.refreshPromise;
     }
+    
+    // Check if we already have a valid token
+    const tokens = this.getTokens();
+    console.log('Current tokens:', tokens ? 'exists' : 'none');
+    console.log('Token expired?', this.isTokenExpired());
+    
+    if (tokens && !this.isTokenExpired()) {
+      console.log('✅ Token is still valid, no refresh needed');
+      return {
+        success: true,
+        message: 'Token is still valid',
+        data: { tokens }
+      };
+    }
+    
+    console.log('🔄 Starting token refresh...');
     this.isRefreshing = true;
     this.refreshPromise = this.refreshToken().finally(() => {
       this.isRefreshing = false;
@@ -227,7 +323,11 @@ class AuthService {
   }
 
   async getProfile(): Promise<ApiResponse<{ user: User }>> {
-    return this.apiCall<{ user: User }>('/profile');
+    console.log('👤 getProfile called - making request to /profile endpoint');
+    console.log('👤 About to call apiCall with endpoint: /profile');
+    const result = await this.apiCall<{ user: User }>('/profile');
+    console.log('👤 getProfile result:', result);
+    return result;
   }
 
   // Utility methods
@@ -283,14 +383,22 @@ export function useAuth() {
         const tokens = authService.getTokens();
         const user = authService.getCurrentUser();
 
-        if (tokens && user && !authService.isTokenExpired()) {
+
+        // Check if we have tokens
+        if (!tokens) {
+          authService.clearTokens();
+          authService.clearUser();
           setAuthState({
-            user,
-            tokens,
+            user: null,
+            tokens: null,
             isLoading: false,
-            isAuthenticated: true,
+            isAuthenticated: false,
           });
-        } else if (tokens && authService.isTokenExpired()) {
+          return;
+        }
+
+        // Check if tokens are expired
+        if (authService.isTokenExpired()) {
           // Try to refresh token
           const refreshResult = await authService.ensureRefreshed();
           if (refreshResult.success && refreshResult.data) {
@@ -314,6 +422,40 @@ export function useAuth() {
               });
             }
           } else {
+            // Refresh failed - likely 403 expired token
+            authService.clearTokens();
+            authService.clearUser();
+            setAuthState({
+              user: null,
+              tokens: null,
+              isLoading: false,
+              isAuthenticated: false,
+            });
+            // Redirect to login if refresh token expired
+            if ((refreshResult as any).code === 'REFRESH_TOKEN_EXPIRED') {
+              // Save current URL before redirecting
+              const currentPath = window.location.pathname + window.location.search;
+              if (currentPath !== '/login' && currentPath !== '/register') {
+                sessionStorage.setItem('redirectAfterLogin', currentPath);
+              }
+              window.location.href = '/login';
+            }
+          }
+          return;
+        }
+
+        // Check if we have a user
+        if (!user) {
+          const profileResult = await authService.getProfile();
+          if (profileResult.success && profileResult.data) {
+            authService.setCurrentUser(profileResult.data.user);
+            setAuthState({
+              user: profileResult.data.user,
+              tokens,
+              isLoading: false,
+              isAuthenticated: true,
+            });
+          } else {
             authService.clearTokens();
             authService.clearUser();
             setAuthState({
@@ -323,16 +465,20 @@ export function useAuth() {
               isAuthenticated: false,
             });
           }
-        } else {
-          setAuthState({
-            user: null,
-            tokens: null,
-            isLoading: false,
-            isAuthenticated: false,
-          });
+          return;
         }
+
+        // User is authenticated with valid tokens
+        setAuthState({
+          user,
+          tokens,
+          isLoading: false,
+          isAuthenticated: true,
+        });
       } catch (error) {
         console.error('Auth initialization error:', error);
+        authService.clearTokens();
+        authService.clearUser();
         setAuthState({
           user: null,
           tokens: null,
@@ -343,6 +489,41 @@ export function useAuth() {
     };
 
     initializeAuth();
+
+    // Listen for token updates from global interceptor
+    const handleTokensUpdated = (event: CustomEvent) => {
+      console.log('🔄 useAuth: Received tokensUpdated event from global interceptor');
+      const { tokens } = event.detail;
+      
+      // Update the auth state with new tokens
+      setAuthState(prev => ({
+        ...prev,
+        tokens: tokens,
+      }));
+    };
+
+    // Listen for auth expiration events
+    const handleAuthExpired = () => {
+      console.log('🚨 useAuth: Received authExpired event');
+      authService.clearTokens();
+      authService.clearUser();
+      setAuthState({
+        user: null,
+        tokens: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+    };
+
+    // Add event listeners
+    window.addEventListener('tokensUpdated', handleTokensUpdated as EventListener);
+    window.addEventListener('authExpired', handleAuthExpired as EventListener);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('tokensUpdated', handleTokensUpdated as EventListener);
+      window.removeEventListener('authExpired', handleAuthExpired as EventListener);
+    };
   }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
@@ -391,16 +572,48 @@ export function useAuth() {
   }, []);
 
   const updateProfile = useCallback(async () => {
+    console.log('🔄 updateProfile called');
+    console.log('Auth state:', { isAuthenticated: authState.isAuthenticated, hasTokens: !!authState.tokens });
+    
+    // Only call getProfile if user is authenticated
+    if (!authState.isAuthenticated || !authState.tokens) {
+      console.log('❌ User not authenticated, skipping profile update');
+      return {
+        success: false,
+        message: 'User not authenticated'
+      };
+    }
+
+    console.log('✅ User authenticated, calling getProfile...');
     const response = await authService.getProfile();
+    
     if (response.success && response.data) {
       authService.setCurrentUser(response.data.user);
       setAuthState(prev => ({
         ...prev,
         user: response.data!.user,
       }));
+    } else if (response.message === 'توکن منقضی شده و امکان بازخوانی وجود ندارد' || (response as any).code === 'REFRESH_TOKEN_EXPIRED') {
+      // Refresh token failed, user needs to login again
+      authService.clearTokens();
+      authService.clearUser();
+      setAuthState({
+        user: null,
+        tokens: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+      // Save current URL before redirecting to login
+      const currentPath = window.location.pathname + window.location.search;
+      if (currentPath !== '/login' && currentPath !== '/register') {
+        sessionStorage.setItem('redirectAfterLogin', currentPath);
+      }
+      // Redirect to login
+      window.location.href = '/login';
     }
+    // For other errors, don't clear tokens - let the apiCall method handle them
     return response;
-  }, []);
+  }, [authState.isAuthenticated, authState.tokens]);
 
   return {
     ...authState,
@@ -408,5 +621,6 @@ export function useAuth() {
     register,
     logout,
     updateProfile,
+    getProfile: authService.getProfile.bind(authService),
   };
 }
