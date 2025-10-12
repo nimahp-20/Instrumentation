@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tools';
+const MONGODB_URI = process.env.MONGODB_URI || '';
 
-if (!process.env.MONGODB_URI) {
-  console.warn('⚠️ MONGODB_URI not set in environment variables, using default: mongodb://localhost:27017/tools');
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not defined in environment variables!');
+  console.error('Please set MONGODB_URI in your Vercel environment variables.');
 }
 
 interface MongooseCache {
@@ -22,6 +23,11 @@ if (!cached) {
 }
 
 async function connectDB(): Promise<typeof mongoose> {
+  // Check if MongoDB URI is configured
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined. Please add it to your environment variables.');
+  }
+
   if (cached!.conn) {
     return cached!.conn;
   }
@@ -29,6 +35,8 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached!.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 10000, // 10 second timeout
+      socketTimeoutMS: 45000,
     };
 
     console.log('🔌 Attempting to connect to MongoDB...');
@@ -39,6 +47,7 @@ async function connectDB(): Promise<typeof mongoose> {
       return mongoose;
     }).catch((error) => {
       console.error('❌ MongoDB connection failed:', error.message);
+      cached!.promise = null; // Reset promise on error
       throw error;
     });
   }
