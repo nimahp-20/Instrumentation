@@ -258,16 +258,19 @@ export function useProducts(options?: {
         if (options?.search) params.append('search', options.search);
         
         const response = await fetch(`${API_BASE_URL}/api/products?${params}`);
-        const result: ApiResponse<Product[]> = await response.json();
+        const result: any = await response.json();
         
         if (result.success) {
-          setProducts(result.data);
+          // API returns 'products' not 'data'
+          setProducts(result.products || result.data || []);
           setPagination(result.pagination || undefined);
         } else {
           setError(result.error || 'Failed to fetch products');
+          setProducts([]);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
+        setProducts([]);
       } finally {
         setLoading(false);
       }

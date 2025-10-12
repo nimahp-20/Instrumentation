@@ -1,12 +1,17 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProductFilter, ProductFilters } from '@/components/filters/ProductFilter';
 import { FeaturedProductsSection } from '@/components/sections/FeaturedProductsSection';
 import { useProducts, useCategories } from '@/hooks/useApi';
 import { LoadingSpinner, LoadingScreen } from '@/components/ui';
+import { useCart } from '@/contexts/CartContext';
 
 export default function ProductsPage() {
+  const router = useRouter();
+  const { addItem: addToCart } = useCart();
+  
   const [filters, setFilters] = useState<ProductFilters>({
     sort: 'createdAt',
     order: 'desc'
@@ -23,6 +28,9 @@ export default function ProductsPage() {
 
   // Extract unique brands from products
   const brands = useMemo(() => {
+    if (!products || !Array.isArray(products)) {
+      return [];
+    }
     const brandSet = new Set<string>();
     products.forEach(product => {
       if (product.brand) {
@@ -44,11 +52,24 @@ export default function ProductsPage() {
   };
 
   const handleAddToCart = (productId: string) => {
-    console.log('افزودن به سبد:', productId);
+    const product = products?.find(p => p._id === productId);
+    if (product) {
+      addToCart({
+        id: product._id,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        images: product.images,
+        stock: product.stock,
+        category: typeof product.category === 'string' ? product.category : product.category?.name || '',
+        brand: product.brand,
+      });
+    }
   };
 
   const handleViewProduct = (slug: string) => {
-    console.log('مشاهده محصول:', slug);
+    router.push(`/products/${slug}`);
   };
 
   if (loading) {
@@ -118,7 +139,7 @@ export default function ProductsPage() {
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-gray-900">
-                    نمایش {products.length} محصول از {pagination?.totalCount || 0}
+                    نمایش {products?.length || 0} محصول از {pagination?.totalCount || 0}
                   </h2>
                   <div className="text-sm text-gray-600">
                     مرتب‌سازی: {filters.sort === 'createdAt' ? 'جدیدترین' : 
@@ -130,7 +151,7 @@ export default function ProductsPage() {
               
               <div className="p-6">
                 <FeaturedProductsSection
-                  products={products.map(product => ({
+                  products={(products || []).map(product => ({
                     id: product._id,
                     name: product.name,
                     slug: product.slug,

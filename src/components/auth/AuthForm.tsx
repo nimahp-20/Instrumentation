@@ -72,12 +72,12 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className="w-full max-w-md mx-auto bg-white rounded-lg sm:rounded-xl shadow-lg p-6 sm:p-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           {mode === 'login' ? 'ورود' : 'ثبت نام'}
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           {mode === 'login' 
             ? 'به حساب کاربری خود وارد شوید' 
             : 'حساب کاربری جدید ایجاد کنید'
@@ -85,10 +85,10 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {mode === 'register' && (
           <>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <Input
                   type="text"
@@ -96,11 +96,11 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
                   placeholder="نام"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className={`w-full ${errors.firstName ? 'border-red-500' : ''}`}
+                  className={`w-full text-sm sm:text-base ${errors.firstName ? 'border-red-500' : ''}`}
                   required
                 />
                 {errors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.firstName}</p>
                 )}
               </div>
               <div>
@@ -110,11 +110,11 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
                   placeholder="نام خانوادگی"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className={`w-full ${errors.lastName ? 'border-red-500' : ''}`}
+                  className={`w-full text-sm sm:text-base ${errors.lastName ? 'border-red-500' : ''}`}
                   required
                 />
                 {errors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.lastName}</p>
                 )}
               </div>
             </div>
@@ -128,11 +128,11 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
             placeholder="ایمیل"
             value={formData.email}
             onChange={handleChange}
-            className={`w-full ${errors.email ? 'border-red-500' : ''}`}
+            className={`w-full text-sm sm:text-base ${errors.email ? 'border-red-500' : ''}`}
             required
           />
           {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>
           )}
         </div>
 
@@ -144,10 +144,10 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
               placeholder="شماره موبایل (اختیاری)"
               value={formData.phone}
               onChange={handleChange}
-              className={`w-full ${errors.phone ? 'border-red-500' : ''}`}
+              className={`w-full text-sm sm:text-base ${errors.phone ? 'border-red-500' : ''}`}
             />
             {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.phone}</p>
             )}
           </div>
         )}
@@ -159,11 +159,11 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
             placeholder="رمز عبور"
             value={formData.password}
             onChange={handleChange}
-            className={`w-full ${errors.password ? 'border-red-500' : ''}`}
+            className={`w-full text-sm sm:text-base ${errors.password ? 'border-red-500' : ''}`}
             required
           />
           {errors.password && (
-            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.password}</p>
           )}
         </div>
 
@@ -177,8 +177,8 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
         </Button>
       </form>
 
-      <div className="mt-6 text-center">
-        <p className="text-gray-600">
+      <div className="mt-4 sm:mt-6 text-center">
+        <p className="text-sm sm:text-base text-gray-600">
           {mode === 'login' ? 'حساب کاربری ندارید؟' : 'قبلاً ثبت نام کرده‌اید؟'}
           <button
             type="button"

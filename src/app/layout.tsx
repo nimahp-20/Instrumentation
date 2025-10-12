@@ -4,6 +4,8 @@ import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { CartProvider } from '@/contexts/CartContext';
+import { WishlistProvider } from '@/contexts/WishlistContext';
 import FetchInterceptorClient from '@/components/FetchInterceptorClient';
 
 const geistSans = Geist({
@@ -44,12 +46,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-iran-sans antialiased flex flex-col min-h-screen`}
       >
-        <AuthProvider>
-          <FetchInterceptorClient />
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </AuthProvider>
+               <AuthProvider>
+                 <CartProvider>
+                   <WishlistProvider>
+                     <FetchInterceptorClient />
+                     <Header />
+                     <main className="flex-grow">{children}</main>
+                     <Footer />
+                   </WishlistProvider>
+                 </CartProvider>
+               </AuthProvider>
       </body>
     </html>
   );

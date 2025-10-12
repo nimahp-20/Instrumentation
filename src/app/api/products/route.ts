@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get('sort') || 'createdAt';
     const order = searchParams.get('order') || 'desc';
     const search = searchParams.get('search');
+    const exclude = searchParams.get('exclude');
     
     // Build query
     let query: any = { isActive: true };
@@ -72,6 +73,10 @@ export async function GET(request: NextRequest) {
         { description: { $regex: search, $options: 'i' } },
         { tags: { $in: [new RegExp(search, 'i')] } }
       ];
+    }
+
+    if (exclude) {
+      query._id = { $ne: exclude };
     }
     
     // Calculate pagination
@@ -124,9 +129,12 @@ export async function GET(request: NextRequest) {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
     
+    // Get available brands for filtering
+    const brands = await Product.distinct('brand', query);
+
     return NextResponse.json({
       success: true,
-      data: products,
+      products: products,
       pagination: {
         currentPage: page,
         totalPages,
@@ -134,6 +142,13 @@ export async function GET(request: NextRequest) {
         limit,
         hasNextPage,
         hasPrevPage
+      },
+      filters: {
+        brands,
+        priceRange: {
+          min: await Product.findOne(query).sort({ price: 1 }).select('price').lean().then(p => (p as any)?.price || 0),
+          max: await Product.findOne(query).sort({ price: -1 }).select('price').lean().then(p => (p as any)?.price || 0)
+        }
       }
     });
     
