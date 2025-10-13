@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check-db": "node scripts/check-db.js",
+    "seed-production": "node scripts/seed-production.js",
+    "fix-production": "node scripts/fix-production.js",
     "setup-db": "tsx src/lib/setup-database.ts",
     "seed-db": "tsx src/lib/seed.ts",
     "seed-products": "tsx src/lib/seed-products.ts",
