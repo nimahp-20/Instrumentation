@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json({ success: true, data, query: q, total: data.products.length + data.categories.length });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ success: false, error: 'Search failed' }, { status: 500 });
   }
 }

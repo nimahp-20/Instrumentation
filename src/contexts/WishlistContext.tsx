@@ -15,6 +15,18 @@ interface WishlistItem {
   addedAt: string;
 }
 
+interface CartAddItemPayload {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  originalPrice?: number;
+  images: string[];
+  stock: number;
+  category: string;
+  brand?: string;
+}
+
 interface WishlistState {
   items: WishlistItem[];
   totalItems: number;
@@ -25,7 +37,7 @@ interface WishlistContextType extends WishlistState {
   removeItem: (id: string) => void;
   clearWishlist: () => void;
   isInWishlist: (id: string) => boolean;
-  moveToCart: (id: string, cartAddItem: (item: any) => void) => void;
+  moveToCart: (id: string, cartAddItem: (item: CartAddItemPayload) => void) => void;
 }
 
 type WishlistAction =
@@ -124,7 +136,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return state.items.some(item => item.id === id);
   };
 
-  const moveToCart = (id: string, cartAddItem: (item: any) => void) => {
+  const moveToCart = (id: string, cartAddItem: (item: CartAddItemPayload) => void) => {
     const item = state.items.find(item => item.id === id);
     if (item) {
       // Remove from wishlist

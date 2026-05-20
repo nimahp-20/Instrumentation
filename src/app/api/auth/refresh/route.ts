@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { User } from '@/lib/models/User';
 import connectToDatabase from '@/lib/mongodb';
 import { verifyRefreshToken, generateTokenPair } from '@/lib/auth-utils';
+import { isAdminAuthMode, setAdminAccessCookie, setRefreshTokenCookie } from '@/lib/auth-cookies';
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,29 +81,26 @@ export async function POST(request: NextRequest) {
     // Save new hashed refresh token to database
     await user.setRefreshToken(tokens.refreshToken);
 
-    // Return success response
-    const response = NextResponse.json(
-      {
-        success: true,
-        message: 'توکن‌ها با موفقیت بازخوانی شدند',
-        data: {
-          tokens: {
-            accessToken: tokens.accessToken,
-            expiresIn: tokens.expiresIn
-          }
-        }
-      },
-      { status: 200 }
-    );
+    const isAdminSession = isAdminAuthMode(request);
 
-    // Set new HTTP-only cookie for refresh token
-    response.cookies.set('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 2 * 60, // 2 minutes for testing
-      path: '/'
+    const response = NextResponse.json({
+      success: true,
+      message: 'توکن‌ها با موفقیت بازخوانی شدند',
+      data: {
+        tokens: isAdminSession
+          ? { expiresIn: tokens.expiresIn }
+          : {
+              accessToken: tokens.accessToken,
+              expiresIn: tokens.expiresIn,
+            },
+      },
     });
+
+    setRefreshTokenCookie(response, tokens.refreshToken);
+
+    if (isAdminSession) {
+      setAdminAccessCookie(response, tokens.accessToken);
+    }
 
     return response;
 

@@ -1,0 +1,104 @@
+/* کارت و ورودی‌های هماهنگ با پنل ادمین — فقط داخل .profile-shell */
+.profile-shell .profile-card {
+  background: var(--admin-card);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+  border: 1px solid rgb(226 232 240 / 0.9);
+}
+
+.profile-shell .profile-input {
+  border: 1px solid rgb(203 213 225 / 0.95);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--admin-text);
+}
+
+.profile-shell .profile-input:focus {
+  outline: none;
+  border-color: var(--admin-header-deep);
+  box-shadow: 0 0 0 3px rgb(77 171 247 / 0.22);
+}
+
+/* select هم‌سبک ورودی پروفایل */
+.profile-shell .profile-select {
+  border: 1px solid rgb(203 213 225 / 0.95);
+  border-radius: 10px;
+  background-color: #fff;
+  color: var(--admin-text);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 1.125rem;
+  background-position: left 0.65rem center;
+  padding-inline-start: 0.75rem;
+  padding-inline-end: 2.25rem;
+}
+
+.profile-shell .profile-select:focus {
+  outline: none;
+  border-color: var(--admin-header-deep);
+  box-shadow: 0 0 0 3px rgb(77 171 247 / 0.22);
+}
+
+.profile-shell .profile-field-readonly {
+  background: rgb(241 245 249 / 0.85);
+  border: 1px solid rgb(226 232 240 / 0.95);
+  border-radius: 10px;
+  color: var(--admin-text);
+}
+
+.profile-shell .profile-btn-primary {
+  background: linear-gradient(135deg, var(--admin-header) 0%, var(--admin-primary) 100%);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-shell .profile-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.03);
+  box-shadow: 0 4px 14px rgb(34 139 230 / 0.35);
+}
+
+.profile-shell .profile-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.profile-shell .profile-btn-ghost {
+  background: rgb(248 250 252);
+  color: var(--admin-muted);
+  border: 1px solid rgb(226 232 240);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.profile-shell .profile-btn-ghost:hover {
+  background: rgb(241 245 249);
+  color: var(--admin-text);
+}
+
+.profile-shell .profile-btn-danger-ghost {
+  background: rgb(254 242 242);
+  color: #b91c1c;
+  border: 1px solid rgb(254 202 202);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.profile-shell .profile-btn-danger-ghost:hover {
+  background: rgb(254 226 226);
+}
+
+.profile-shell .profile-btn-accent-ghost {
+  background: rgb(239 246 255);
+  color: var(--admin-primary);
+  border: 1px solid rgb(191 219 254);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.profile-shell .profile-btn-accent-ghost:hover {
+  background: rgb(219 234 254);
+}

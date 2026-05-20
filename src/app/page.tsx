@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  HeroSection,
-  FeaturesSection,
-  CategoriesSection,
-  FeaturedProductsSection,
-  NewsletterSection
-} from '@/components/sections';
+import { HeroSection } from '@/components/sections/HeroSection';
+import { FeaturesSection } from '@/components/sections/FeaturesSection';
+import { CategoriesSection } from '@/components/sections/CategoriesSection';
+import { NewsletterSection } from '@/components/sections/NewsletterSection';
 import { useCategories, useProducts, seedDatabase } from '@/hooks/useApi';
-import { LoadingSpinner, LoadingScreen, Button } from '@/components/ui';
+import { LoadingScreen } from '@/components/ui/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
 // داده‌های بخش قهرمان
@@ -78,12 +76,12 @@ const newsletterData = {
 
 // Main Homepage Component
 const HomePage: React.FC = () => {
-  const [isSeeded, setIsSeeded] = useState(false);
+  const [, setIsSeeded] = useState(false);
   const [seeding, setSeeding] = useState(false);
 
   // Fetch categories and products from API
   const { categories, loading: categoriesLoading, error: categoriesError } = useCategories({ limit: 9 });
-  const { products, loading: productsLoading, error: productsError } = useProducts({
+  const { loading: productsLoading, error: productsError } = useProducts({
     featured: true,
     limit: 8
   });
@@ -155,7 +153,7 @@ const HomePage: React.FC = () => {
         loading={categoriesLoading}
       />
 
-      <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden">
+      <section className="section-dark relative py-12 sm:py-16 lg:py-20 overflow-hidden">
         {/* Background with gradient and patterns */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
           <div className="absolute inset-0 opacity-20">
@@ -177,11 +175,11 @@ const HomePage: React.FC = () => {
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight px-4">
               جستجو و فیلتر
-              <span className="block bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="block text-cyan-200">
                 هوشمند
               </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed px-4">
+            <p className="text-base sm:text-lg lg:text-xl text-slate-100 max-w-3xl mx-auto leading-relaxed px-4">
               با سیستم فیلتر پیشرفته ما، دقیقاً آنچه که می‌خواهید را پیدا کنید.
               تجربه خرید شخصی‌سازی شده با فیلترهای هوشمند
             </p>
@@ -200,7 +198,7 @@ const HomePage: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">فیلتر قیمت</h3>
-                  <p className="text-blue-200 text-xs sm:text-sm leading-relaxed">جستجو بر اساس محدوده قیمت دلخواه شما</p>
+                  <p className="text-slate-200 text-xs sm:text-sm leading-relaxed">جستجو بر اساس محدوده قیمت دلخواه شما</p>
                 </div>
               </div>
             </div>
@@ -216,7 +214,7 @@ const HomePage: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">فیلتر امتیاز</h3>
-                  <p className="text-blue-200 text-xs sm:text-sm leading-relaxed">محصولات با بالاترین امتیاز مشتریان</p>
+                  <p className="text-slate-200 text-xs sm:text-sm leading-relaxed">محصولات با بالاترین امتیاز مشتریان</p>
                 </div>
               </div>
             </div>
@@ -232,7 +230,7 @@ const HomePage: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">فیلتر برند</h3>
-                  <p className="text-blue-200 text-xs sm:text-sm leading-relaxed">جستجو بر اساس برند مورد علاقه شما</p>
+                  <p className="text-slate-200 text-xs sm:text-sm leading-relaxed">جستجو بر اساس برند مورد علاقه شما</p>
                 </div>
               </div>
             </div>
@@ -248,7 +246,7 @@ const HomePage: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">مرتب‌سازی</h3>
-                  <p className="text-blue-200 text-xs sm:text-sm leading-relaxed">مرتب‌سازی بر اساس معیارهای مختلف</p>
+                  <p className="text-slate-200 text-xs sm:text-sm leading-relaxed">مرتب‌سازی بر اساس معیارهای مختلف</p>
                 </div>
               </div>
             </div>
@@ -258,15 +256,15 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-8 sm:mb-12">
             <div className="text-center">
               <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">۵۰+</div>
-              <div className="text-blue-200 text-xs sm:text-base">محصول متنوع</div>
+              <div className="text-slate-200 text-xs sm:text-base">محصول متنوع</div>
             </div>
             <div className="text-center">
               <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">۹</div>
-              <div className="text-blue-200 text-xs sm:text-base">دسته‌بندی مختلف</div>
+              <div className="text-slate-200 text-xs sm:text-base">دسته‌بندی مختلف</div>
             </div>
             <div className="text-center">
               <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">۱۰+</div>
-              <div className="text-blue-200 text-xs sm:text-base">برند معتبر</div>
+              <div className="text-slate-200 text-xs sm:text-base">برند معتبر</div>
             </div>
           </div>
 
@@ -278,19 +276,16 @@ const HomePage: React.FC = () => {
                 className="group relative inline-flex items-center px-5 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-sm sm:text-base lg:text-lg rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 border border-white/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl sm:rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-                <div className="relative flex items-center">
+                <div className="relative flex items-center cursor-pointer">
+                  شروع جستجو و فیلتر پیشرفته
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 ml-2 sm:ml-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
-                  </svg>
-                  شروع جستجو و فیلتر پیشرفته
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </div>
               </Button>
             </Link>
 
-            <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-blue-200">
+            <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-slate-200">
               <div className="flex items-center">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 ml-1.5 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

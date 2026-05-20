@@ -25,14 +25,14 @@ export default function HelpPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen page-surface py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             راهنمای خرید
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-slate-700">
             پاسخ سوالات متداول و راهنمای کامل خرید
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function HelpPage() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">خرید و سفارش</h3>
-            <p className="text-gray-600 text-sm">راهنمای خرید و ثبت سفارش</p>
+            <p className="text-slate-700 text-sm">راهنمای خرید و ثبت سفارش</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
@@ -72,7 +72,7 @@ export default function HelpPage() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">ارسال و تحویل</h3>
-            <p className="text-gray-600 text-sm">اطلاعات مربوط به ارسال سفارش</p>
+            <p className="text-slate-700 text-sm">اطلاعات مربوط به ارسال سفارش</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
@@ -82,7 +82,7 @@ export default function HelpPage() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">بازگشت و تعویض</h3>
-            <p className="text-gray-600 text-sm">قوانین بازگشت و تعویض محصول</p>
+            <p className="text-slate-700 text-sm">قوانین بازگشت و تعویض محصول</p>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export default function HelpPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   {faq.question}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-slate-700 leading-relaxed">
                   {faq.answer}
                 </p>
               </div>

@@ -1,8 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button, Input } from '@/components/ui';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Button } from '@/components/ui/Button';
 import { useAuthContext } from '@/contexts/AuthContext';
+
+const authFieldClass =
+  'w-full min-h-[3rem] py-3 border-2 rounded-xl bg-white text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-colors border-[var(--border)]';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,42 +14,58 @@ interface AuthModalProps {
   defaultTab?: 'login' | 'register';
 }
 
+const AUTH_ICON_SLOT = 'absolute inset-y-0 left-3.5 w-6 flex items-center justify-center pointer-events-none text-[var(--text-muted)]';
+
+function fieldUsesLtrInput(type: string) {
+  return type === 'email' || type === 'tel';
+}
+
 // Helper component for input with error display (moved outside to prevent recreation)
-const InputWithError = ({ 
-  type, 
-  placeholder, 
-  value, 
-  onChange, 
-  fieldName, 
-  icon, 
+const InputWithError = ({
+  type,
+  placeholder,
+  value,
+  onChange,
+  fieldName,
+  icon,
   fieldErrors,
-  required = false 
+  required = false,
+  autoComplete,
 }: {
   type: string;
   placeholder: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   fieldName: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   fieldErrors: Record<string, string>;
   required?: boolean;
+  autoComplete?: string;
 }) => {
+  const hasIcon = icon != null;
+  const ltrField = fieldUsesLtrInput(type);
+
   return (
     <div className="space-y-2">
       <div className="relative">
-        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-          {icon}
-        </div>
-        <Input
+        {hasIcon && <div className={AUTH_ICON_SLOT}>{icon}</div>}
+        <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`w-full pr-12 pl-4 py-4 bg-white border-2 rounded-2xl focus:ring-4 transition-all duration-300 text-slate-800 placeholder-slate-400 ${
-            fieldErrors[fieldName] 
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-              : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'
-          }`}
+          dir={ltrField ? 'ltr' : undefined}
+          autoComplete={
+            autoComplete ??
+            (type === 'email' ? 'email' : type === 'tel' ? 'tel' : type === 'password' ? 'current-password' : 'off')
+          }
+          className={`${authFieldClass} ${
+            hasIcon
+              ? ltrField
+                ? 'pl-12 pr-4 text-left'
+                : 'pl-12 pr-4 text-end'
+              : 'px-4 text-end'
+          } ${fieldErrors[fieldName] ? 'border-red-500 focus:ring-red-500/30 focus:border-red-500' : ''}`}
           required={required}
         />
       </div>
@@ -62,13 +82,14 @@ const InputWithError = ({
 };
 
 // Password input component with show/hide functionality
-const PasswordInputWithError = ({ 
-  placeholder, 
-  value, 
-  onChange, 
-  fieldName, 
+const PasswordInputWithError = ({
+  placeholder,
+  value,
+  onChange,
+  fieldName,
   fieldErrors,
-  required = false 
+  required = false,
+  autoComplete = 'current-password',
 }: {
   placeholder: string;
   value: string;
@@ -76,6 +97,7 @@ const PasswordInputWithError = ({
   fieldName: string;
   fieldErrors: Record<string, string>;
   required?: boolean;
+  autoComplete?: string;
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -86,27 +108,27 @@ const PasswordInputWithError = ({
   return (
     <div className="space-y-2">
       <div className="relative">
-        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-          <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="absolute inset-y-0 left-3.5 w-6 flex items-center justify-center pointer-events-none text-[var(--text-muted)]">
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <Input
-          type={showPassword ? "text" : "password"}
+        <input
+          type={showPassword ? 'text' : 'password'}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`w-full pr-20 pl-4 py-4 bg-white border-2 rounded-2xl focus:ring-4 transition-all duration-300 text-slate-800 placeholder-slate-400 ${
-            fieldErrors[fieldName] 
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-100' 
-              : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'
+          autoComplete={autoComplete}
+          className={`${authFieldClass} pl-12 pr-12 text-end ${
+            fieldErrors[fieldName] ? 'border-red-500 focus:ring-red-500/30 focus:border-red-500' : ''
           }`}
           required={required}
         />
         <button
           type="button"
           onClick={togglePasswordVisibility}
-          className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors duration-200"
+          className="absolute inset-y-0 right-3.5 w-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors z-10"
+          aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
         >
           {showPassword ? (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,8 +163,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  
+  const [mounted, setMounted] = useState(false);
+
   const { login, register } = useAuthContext();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(defaultTab);
+      setError('');
+      setFieldErrors({});
+    }
+  }, [isOpen, defaultTab]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
 
   // Login form state
   const [loginData, setLoginData] = useState({
@@ -178,7 +227,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setError(result.message || 'خطا در ورود');
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setError('خطا در ورود');
     } finally {
       setIsLoading(false);
@@ -229,7 +278,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setError(result.message || 'خطا در ثبت نام');
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setError('خطا در ثبت نام');
     } finally {
       setIsLoading(false);
@@ -254,20 +303,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Elegant Backdrop */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/90 to-slate-900/80 backdrop-blur-md"
+  return createPortal(
+    <div
+      className="auth-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
+    >
+      <button
+        type="button"
+        className="auth-modal-backdrop"
         onClick={onClose}
+        aria-label="بستن"
+        tabIndex={-1}
       />
-      
-      {/* Gentleman Modal */}
-      <div className="relative w-full max-w-lg transform transition-all duration-500 ease-out">
-        {/* Modal Container */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+
+      <div className="auth-modal-center">
+        <div className="auth-modal-panel">
           {/* Elegant Header */}
           <div className="relative bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 px-8 py-6">
             {/* Decorative Pattern */}
@@ -276,24 +330,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`,
               }}></div>
             </div>
-            
+
             <div className="relative flex items-center justify-between">
-              <div className="flex items-center space-x-3 space-x-reverse">
+              <div className="flex items-center space-x-3 space-x-reverse gap-2">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">
+                <div className=' flex-col gap-2 text-white/80'>
+                  <h2 id="auth-modal-title" className="text-2xl font-bold text-white">
                     {activeTab === 'login' ? 'خوش آمدید' : 'ایجاد حساب'}
                   </h2>
-                  <p className="text-slate-300 text-sm">
+                  <p className="text-sm text-slate-100/95 leading-relaxed">
                     {activeTab === 'login' ? 'به حساب کاربری خود وارد شوید' : 'حساب کاربری جدید ایجاد کنید'}
                   </p>
                 </div>
               </div>
-              
+
               <button
                 onClick={onClose}
                 className="text-slate-300 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl"
@@ -310,11 +364,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="flex bg-white rounded-2xl p-1 shadow-inner">
               <button
                 onClick={() => setActiveTab('login')}
-                className={`flex-1 px-6 py-3 text-center font-semibold rounded-xl transition-all duration-300 ${
-                  activeTab === 'login'
+                className={`flex-1 px-6 py-3 text-center font-semibold rounded-xl transition-all duration-300 ${activeTab === 'login'
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105'
-                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                }`}
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-slate-50'
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-2 space-x-reverse">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -325,11 +378,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('register')}
-                className={`flex-1 px-6 py-3 text-center font-semibold rounded-xl transition-all duration-300 ${
-                  activeTab === 'register'
+                className={`flex-1 px-6 py-3 text-center font-semibold rounded-xl transition-all duration-300 ${activeTab === 'register'
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105'
-                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
-                }`}
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-slate-50'
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-2 space-x-reverse">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -367,13 +419,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     fieldName="email"
                     fieldErrors={fieldErrors}
                     icon={
-                      <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                       </svg>
                     }
                     required
                   />
-                  
+
                   <PasswordInputWithError
                     placeholder="رمز عبور"
                     value={loginData.password}
@@ -400,7 +452,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </form>
             ) : (
               <form onSubmit={handleRegister} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputWithError
                     type="text"
                     placeholder="نام"
@@ -408,7 +460,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onChange={(e) => handleInputChange('register', 'firstName', e.target.value)}
                     fieldName="firstName"
                     fieldErrors={fieldErrors}
-                    icon={<div />}
+                    autoComplete="given-name"
                     required
                   />
                   <InputWithError
@@ -418,7 +470,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onChange={(e) => handleInputChange('register', 'lastName', e.target.value)}
                     fieldName="lastName"
                     fieldErrors={fieldErrors}
-                    icon={<div />}
+                    autoComplete="family-name"
                     required
                   />
                 </div>
@@ -430,8 +482,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={(e) => handleInputChange('register', 'email', e.target.value)}
                   fieldName="email"
                   fieldErrors={fieldErrors}
+                  autoComplete="email"
                   icon={
-                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                     </svg>
                   }
@@ -445,8 +498,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={(e) => handleInputChange('register', 'phone', e.target.value)}
                   fieldName="phone"
                   fieldErrors={fieldErrors}
+                  autoComplete="tel"
                   icon={
-                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                   }
@@ -458,6 +512,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={(e) => handleInputChange('register', 'password', e.target.value)}
                   fieldName="password"
                   fieldErrors={fieldErrors}
+                  autoComplete="new-password"
                   required
                 />
 
@@ -467,6 +522,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={(e) => handleInputChange('register', 'confirmPassword', e.target.value)}
                   fieldName="confirmPassword"
                   fieldErrors={fieldErrors}
+                  autoComplete="new-password"
                   required
                 />
 
@@ -489,14 +545,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {/* Elegant Footer */}
             <div className="mt-8 pt-6 border-t border-slate-200">
               <div className="text-center">
-                <p className="text-slate-600 text-sm">
+                <p className="text-[var(--text-secondary)] text-sm">
                   {activeTab === 'login' ? (
                     <>
                       حساب کاربری ندارید؟{' '}
                       <button
                         type="button"
                         onClick={() => setActiveTab('register')}
-                        className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+                        className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold hover:underline transition-colors"
                       >
                         همین حالا ثبت نام کنید
                       </button>
@@ -507,7 +563,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setActiveTab('login')}
-                        className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+                        className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold hover:underline transition-colors"
                       >
                         وارد شوید
                       </button>
@@ -515,7 +571,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   )}
                 </p>
               </div>
-              
+
               {/* Trust Indicators */}
               <div className="mt-6 flex items-center justify-center space-x-6 space-x-reverse text-slate-500">
                 <div className="flex items-center space-x-2 space-x-reverse">
@@ -541,6 +597,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

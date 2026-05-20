@@ -1,0 +1,44 @@
+@import "../../styles/shell-tokens.css";
+
+/* پنل مدیریت — RTL؛ متغیرها در .shell-tokens */
+.admin-shell .admin-card {
+  background: var(--admin-card);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+  border: 1px solid rgb(226 232 240 / 0.9);
+}
+
+.admin-shell .admin-input-search {
+  background: var(--admin-navy-2);
+  border: 1px solid var(--admin-navy-border);
+  color: #e2e8f0;
+  border-radius: 10px;
+}
+
+.admin-shell .admin-input-search::placeholder {
+  color: #64748b;
+}
+
+.admin-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(15 23 42 / 0.38);
+  backdrop-filter: blur(2px);
+}
+
+.admin-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.75rem 2rem;
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  border: 1px solid rgb(226 232 240 / 0.95);
+  box-shadow: 0 12px 40px rgb(15 23 42 / 0.18);
+  min-width: min(18rem, 90vw);
+}

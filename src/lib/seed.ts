@@ -1,27 +1,33 @@
+import { loadEnvFiles } from './load-env';
 import connectDB from './mongodb';
 import { User } from './models/User';
-import { Category, Product } from './models';
+import { Category } from './models';
+
+loadEnvFiles();
 
 async function seedDatabase() {
   try {
     await connectDB();
     console.log('🌱 Starting database seeding for "tools" database...');
 
-    // Check if admin user already exists
-    let user = await User.findOne({ email: 'admin@example.com' });
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPass123!';
+
+    let user = await User.findOne({ email: adminEmail.toLowerCase() });
     if (user) {
       console.log('✅ Admin user already exists, updating password...');
-      user.password = 'AdminPass123!'; // Let the pre-save hook hash it
+      user.password = adminPassword;
+      user.role = 'admin';
       await user.save();
       console.log('✅ Admin user password updated');
     } else {
       console.log('✅ Creating new admin user...');
       user = await User.create({
-        email: 'admin@example.com',
-        password: 'AdminPass123!', // Let the pre-save hook hash it
-        firstName: 'Admin',
-        lastName: 'User',
-        phone: '09123456789', // Valid Iranian mobile number
+        email: adminEmail.toLowerCase(),
+        password: adminPassword,
+        firstName: process.env.ADMIN_FIRST_NAME || 'Admin',
+        lastName: process.env.ADMIN_LAST_NAME || 'User',
+        phone: process.env.ADMIN_PHONE || '09123456789',
         role: 'admin',
         isActive: true,
         emailVerified: true
@@ -30,7 +36,7 @@ async function seedDatabase() {
     }
 
     // Create sample categories
-    const techCategory = await Category.create({
+    const _techCategory = await Category.create({
       name: 'Technology',
       nameEn: 'Technology',
       slug: 'technology',
@@ -41,7 +47,7 @@ async function seedDatabase() {
       seoDescription: 'Stay updated with the latest technology trends and news',
     });
 
-    const webDevCategory = await Category.create({
+    const _webDevCategory = await Category.create({
       name: 'Web Development',
       nameEn: 'Web Development',
       slug: 'web-development',

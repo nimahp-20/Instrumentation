@@ -18,6 +18,13 @@ const generalRateLimit = rateLimit({
   keyGenerator: (req) => `general:${getClientIP(req)}`
 });
 
+/** Stricter limit for admin login — 3 attempts per 15 minutes per IP */
+const adminAuthRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 3,
+  keyGenerator: (req) => `admin-auth:${getClientIP(req)}`,
+});
+
 /**
  * Security headers middleware
  */
@@ -50,10 +57,15 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
  */
 export function withRateLimit(
   handler: (req: NextRequest) => Promise<NextResponse>,
-  rateLimitConfig: 'auth' | 'general' = 'general'
+  rateLimitConfig: 'auth' | 'admin-auth' | 'general' = 'general'
 ) {
   return async (req: NextRequest): Promise<NextResponse> => {
-    const limiter = rateLimitConfig === 'auth' ? authRateLimit : generalRateLimit;
+    const limiter =
+      rateLimitConfig === 'auth'
+        ? authRateLimit
+        : rateLimitConfig === 'admin-auth'
+          ? adminAuthRateLimit
+          : generalRateLimit;
     const result = limiter(req);
 
     if (!result.allowed) {
@@ -216,7 +228,7 @@ export function withSecurityLogging(
 export function withSecurity(
   handler: (req: NextRequest) => Promise<NextResponse>,
   options: {
-    rateLimit?: 'auth' | 'general';
+    rateLimit?: 'auth' | 'admin-auth' | 'general';
     validation?: Record<string, 'email' | 'password' | 'name' | 'phone' | 'general'>;
     eventType?: string;
   } = {}

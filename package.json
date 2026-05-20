@@ -13,6 +13,7 @@
     "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
     "setup-db": "tsx src/lib/setup-database.ts",
     "seed-db": "tsx src/lib/seed.ts",
+    "seed-admin": "tsx src/lib/seed-admin.ts",
     "seed-products": "tsx src/lib/seed-products.ts",
     "cleanup-logs": "tsx src/lib/log-cleanup.ts",
     "log-stats": "tsx -e \"import('./src/lib/log-cleanup.ts').then(m => m.logCleanupService.getLogStats()).then(console.log)\""
@@ -28,10 +29,12 @@
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
+  "overrides": {
+    "@types/minimatch": "npm:minimatch@9.0.5"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/minimatch": "^6.0.0",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { FilterQuery } from 'mongoose';
 import connectToDatabase from '@/lib/mongodb';
-import { Product, Category } from '@/lib/models';
+import { Product, Category, IProduct } from '@/lib/models';
+import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { pickProductPayload } from '@/lib/admin-payload';
+import { mergeProductCreateFields } from '@/lib/merge-product-create';
+import { mergeDiscountPercentIntoProductPayload, parseDiscountPercent } from '@/lib/product-discount';
+import { assertProductImageUrlsAllowed, isAllowedProductImageUrl } from '@/lib/product-image-validation';
 
 // GET /api/products - Get all products with filtering and pagination
 export async function GET(request: NextRequest) {
@@ -25,7 +31,7 @@ export async function GET(request: NextRequest) {
     const exclude = searchParams.get('exclude');
     
     // Build query
-    let query: any = { isActive: true };
+    const query: FilterQuery<IProduct> = { isActive: true };
     
     if (category) {
       const categoryDoc = await Category.findOne({ slug: category });
@@ -83,7 +89,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     
     // Build sort object
-    const sortObj: any = {};
+    const sortObj: Record<string, 1 | -1> = {};
     
     // Handle different sort options
     switch (sort) {
@@ -146,8 +152,8 @@ export async function GET(request: NextRequest) {
       filters: {
         brands,
         priceRange: {
-          min: await Product.findOne(query).sort({ price: 1 }).select('price').lean().then(p => (p as any)?.price || 0),
-          max: await Product.findOne(query).sort({ price: -1 }).select('price').lean().then(p => (p as any)?.price || 0)
+          min: await Product.findOne(query).sort({ price: 1 }).select('price').lean().then(p => (p as { price?: number } | null)?.price ?? 0),
+          max: await Product.findOne(query).sort({ price: -1 }).select('price').lean().then(p => (p as { price?: number } | null)?.price ?? 0)
         }
       }
     });
@@ -161,50 +167,78 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/products - Create new product
-export async function POST(request: NextRequest) {
+// POST /api/products - Create new product (admin only)
+async function createProduct(request: AuthenticatedRequest) {
   try {
     await connectToDatabase();
-    
-    const body = await request.json();
-    
-    // Validate required fields
-    if (!body.name || !body.slug || !body.category || !body.price) {
+
+    const raw = (await request.json()) as Record<string, unknown>;
+    const picked = pickProductPayload(raw);
+    const body = mergeProductCreateFields(picked);
+
+    if (Object.prototype.hasOwnProperty.call(raw, 'discountPercent')) {
+      const pct = parseDiscountPercent(raw.discountPercent);
+      if (pct === null) {
+        return NextResponse.json(
+          { success: false, error: 'درصد تخفیف باید عددی بین ۰ تا ۱۰۰ باشد.' },
+          { status: 400 }
+        );
+      }
+      const merged = mergeDiscountPercentIntoProductPayload(body, pct);
+      if (!merged.ok) {
+        return NextResponse.json({ success: false, error: merged.message }, { status: 400 });
+      }
+      if (body.originalPrice === null) {
+        delete body.originalPrice;
+      }
+    }
+
+    if (!body.name || !body.slug || !body.category || body.price === undefined) {
       return NextResponse.json(
-        { success: false, error: 'Name, slug, category, and price are required' },
+        { success: false, error: 'نام، اسلاگ، دسته و قیمت الزامی است' },
         { status: 400 }
       );
     }
-    
-    // Check if product with same slug exists
+
     const existingProduct = await Product.findOne({ slug: body.slug });
     if (existingProduct) {
       return NextResponse.json(
-        { success: false, error: 'Product with this slug already exists' },
+        { success: false, error: 'محصولی با این اسلاگ از قبل وجود دارد' },
         { status: 400 }
       );
     }
-    
-    // Check if category exists
+
     const category = await Category.findById(body.category);
     if (!category) {
       return NextResponse.json(
-        { success: false, error: 'Category not found' },
+        { success: false, error: 'دسته‌بندی یافت نشد' },
         { status: 400 }
       );
     }
-    
+
+    let skuCandidate = String(body.sku);
+    while (await Product.exists({ sku: skuCandidate })) {
+      skuCandidate = `AUTO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    }
+    body.sku = skuCandidate;
+
+    const imgsForCheck = Array.isArray(body.images) ? body.images : [];
+    const imgListErr = assertProductImageUrlsAllowed(imgsForCheck, 'تصاویر');
+    if (imgListErr) {
+      return NextResponse.json({ success: false, error: imgListErr }, { status: 400 });
+    }
+    if (!isAllowedProductImageUrl(body.thumbnail)) {
+      return NextResponse.json(
+        { success: false, error: 'آدرس تصویر شاخص نامعتبر یا غیرمجاز است' },
+        { status: 400 }
+      );
+    }
+
     const product = new Product(body);
     await product.save();
-    
-    // Populate category for response
     await product.populate('category', 'name nameEn slug');
-    
-    return NextResponse.json({
-      success: true,
-      data: product
-    }, { status: 201 });
-    
+
+    return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(
@@ -213,3 +247,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withAdminAuth(createProduct);

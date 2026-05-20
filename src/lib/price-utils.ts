@@ -96,8 +96,6 @@ export function formatLargeNumber(number: number): string {
  * @returns Formatted stock status
  */
 export function formatStockStatus(stock: number, minStock: number = 5): string {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  
   if (stock === 0) {
     return 'ناموجود';
   } else if (stock <= minStock) {

@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button, Badge } from '../ui';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui';
 import { AuthModal } from '../auth/AuthModal';
 import { useAuthContext } from '@/contexts/AuthContext';
+import type { User } from '@/hooks/useAuth';
 import { useGlobalSearch } from '@/hooks/useApi';
 import { IssueManager, SystemIssue, getIssuesForEnvironment, getHighestSeverity } from '@/lib/issue-manager';
 
@@ -19,9 +23,95 @@ interface Notification {
   read: boolean;
 }
 
+const SITE_NAV = [
+  { href: '/', label: 'خانه' },
+  { href: '/products', label: 'محصولات' },
+  { href: '/about', label: 'درباره ما' },
+  { href: '/contact', label: 'تماس' },
+] as const;
+
+type GlobalSearchResults = {
+  categories: Array<{ slug: string; name: string; productCount?: number }>;
+  products: Array<{ slug: string; name: string; price?: number }>;
+};
+
+function navIsActive(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const SearchResultsPanel: React.FC<{
+  loading: boolean;
+  results: GlobalSearchResults;
+  query: string;
+  onNavigate?: () => void;
+  maxHeightClass?: string;
+}> = ({ loading, results, query, onNavigate, maxHeightClass = 'max-h-96' }) => {
+  if (query.trim().length < 2) return null;
+
+  return (
+    <div className={`header-search-panel ${maxHeightClass} overflow-y-auto`}>
+      {loading ? (
+        <div className="px-4 py-3 text-sm text-[var(--text-muted)]">در حال جستجو...</div>
+      ) : (
+        <>
+          {results.categories.length > 0 && (
+            <div className="py-2">
+              <div className="px-4 py-1 text-xs font-semibold text-[var(--text-muted)]">دسته‌بندی‌ها</div>
+              {results.categories.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/categories/${c.slug}`}
+                  className="header-search-hit"
+                  onClick={onNavigate}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-[var(--text-primary)] truncate">{c.name}</div>
+                    <div className="text-xs text-[var(--text-muted)] truncate">{c.productCount} محصول</div>
+                  </div>
+                  <svg className="w-4 h-4 text-[var(--text-muted)] ms-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          )}
+          {results.products.length > 0 && (
+            <div className="py-2 border-t border-[var(--border)]">
+              <div className="px-4 py-1 text-xs font-semibold text-[var(--text-muted)]">محصولات</div>
+              {results.products.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/products/${p.slug}`}
+                  className="header-search-hit"
+                  onClick={onNavigate}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-[var(--text-primary)] truncate">{p.name}</div>
+                    <div className="text-xs text-[var(--text-muted)] truncate">
+                      {p.price?.toLocaleString?.('fa-IR')} تومان
+                    </div>
+                  </div>
+                  <svg className="w-4 h-4 text-[var(--text-muted)] ms-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          )}
+          {results.categories.length === 0 && results.products.length === 0 && (
+            <div className="px-4 py-3 text-sm text-[var(--text-muted)]">نتیجه‌ای یافت نشد</div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 // User dropdown component
 const UserDropdown: React.FC<{
-  user: any;
+  user: User | null;
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
@@ -29,20 +119,20 @@ const UserDropdown: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+    <div className="absolute end-0 mt-2 w-64 card-base py-2 z-50">
       {/* User info header */}
-      <div className="px-4 py-3 border-b border-gray-100">
+      <div className="px-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center shadow-sm">
             <span className="text-white font-semibold text-sm">
               {user?.firstName?.[0] || user?.email?.[0] || 'U'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
               {user?.firstName} {user?.lastName}
             </p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            <p className="text-xs text-[var(--text-muted)] truncate">{user?.email}</p>
           </div>
         </div>
       </div>
@@ -51,7 +141,7 @@ const UserDropdown: React.FC<{
       <div className="py-1">
         <Link
           href="/profile"
-          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +151,7 @@ const UserDropdown: React.FC<{
         </Link>
         <Link
           href="/orders"
-          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +161,7 @@ const UserDropdown: React.FC<{
         </Link>
         <Link
           href="/wishlist"
-          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +171,7 @@ const UserDropdown: React.FC<{
         </Link>
         <Link
           href="/settings"
-          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,13 +183,13 @@ const UserDropdown: React.FC<{
       </div>
 
       {/* Logout */}
-      <div className="border-t border-gray-100 py-1">
+      <div className="border-t border-[var(--border)] py-1">
         <button
           onClick={() => {
             onLogout();
             onClose();
           }}
-          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50/80 transition-colors"
         >
           <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -123,11 +213,11 @@ const NotificationsDropdown: React.FC<{
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[80vh] overflow-hidden flex flex-col">
+    <div className="absolute end-0 mt-2 w-72 sm:w-80 card-base py-2 z-50 max-h-[80vh] overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100">
+      <div className="px-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">اعلانات</h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">اعلانات</h3>
           {unreadCount > 0 && (
             <Badge size="sm" className="bg-red-500 text-white">
               {unreadCount}
@@ -139,10 +229,9 @@ const NotificationsDropdown: React.FC<{
       {/* Notifications list */}
       <div className="overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-500 text-sm">
-            <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+          <div className="px-4 py-8 text-center text-[var(--text-muted)] text-sm">
+            <svg className="w-8 h-8 mx-auto mb-2 text-[var(--border-strong)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             هیچ اعلان جدیدی وجود ندارد
           </div>
@@ -150,8 +239,8 @@ const NotificationsDropdown: React.FC<{
           notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${
-                !notification.read ? 'bg-blue-50 border-r-2 border-blue-500' : ''
+              className={`px-4 py-3 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer ${
+                !notification.read ? 'bg-[var(--primary-muted)] border-s-2 border-[var(--primary)]' : ''
               }`}
               onClick={() => onMarkAsRead(notification.id)}
             >
@@ -160,12 +249,12 @@ const NotificationsDropdown: React.FC<{
                   notification.type === 'success' ? 'bg-green-500' :
                   notification.type === 'warning' ? 'bg-yellow-500' :
                   notification.type === 'error' ? 'bg-red-500' :
-                  'bg-blue-500'
+                  'bg-[var(--info)]'
                 }`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                  <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{notification.title}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">{notification.message}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     {new Date(notification.timestamp).toLocaleDateString('fa-IR')}
                   </p>
                 </div>
@@ -177,10 +266,10 @@ const NotificationsDropdown: React.FC<{
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="border-t border-gray-100 px-4 py-2">
+        <div className="border-t border-[var(--border)] px-4 py-2">
           <Link
             href="/notifications"
-            className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+            className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors font-medium"
             onClick={onClose}
           >
             مشاهده همه اعلانات
@@ -195,41 +284,65 @@ const NotificationsDropdown: React.FC<{
 const MobileMenu: React.FC<{
   isOpen: boolean;
   onClose: () => void;
+  pathname: string | null;
   isAuthenticated: boolean;
-  user: any;
+  user: User | null;
   onLogout: () => void;
   onShowAuthModal: () => void;
-}> = ({ isOpen, onClose, isAuthenticated, user, onLogout, onShowAuthModal }) => {
-  if (!isOpen) return null;
+}> = ({ isOpen, onClose, pathname, isAuthenticated, user, onLogout, onShowAuthModal }) => {
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-40 md:hidden"
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="mobile-menu-root" role="dialog" aria-modal="true" aria-label="منوی موبایل">
+      <button
+        type="button"
+        className="mobile-menu-backdrop"
         onClick={onClose}
+        aria-label="بستن منو"
+        tabIndex={-1}
       />
-      
-      {/* Menu Panel */}
-      <div className="fixed inset-y-0 right-0 w-[280px] bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h2 className="text-lg font-bold text-gray-900">منو</h2>
+
+      <aside className="mobile-menu-drawer">
+        <div className="mobile-menu-drawer__head">
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">منو</h2>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+            className="p-2 hover:bg-[var(--surface-muted)] rounded-[var(--radius-md)] transition-colors"
+            aria-label="بستن"
           >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
+        <div className="mobile-menu-drawer__body">
         {/* User Section */}
         {isAuthenticated && user ? (
-          <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+          <div className="p-4 bg-gradient-to-br from-slate-800 via-slate-900 to-emerald-950 text-white border-b border-white/10">
             <div className="flex items-center space-x-3 space-x-reverse mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center ring-2 ring-amber-400/40">
                 <span className="text-white font-semibold text-lg">
                   {user?.firstName?.[0] || user?.email?.[0] || 'U'}
                 </span>
@@ -238,86 +351,61 @@ const MobileMenu: React.FC<{
                 <p className="text-sm font-semibold truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-blue-100 truncate">{user?.email}</p>
+                <p className="text-xs text-slate-300 truncate">{user?.email}</p>
               </div>
             </div>
             <Link href="/profile" onClick={onClose}>
-              <Button size="sm" className="w-full bg-white text-blue-600 hover:bg-blue-50">
+              <Button size="sm" className="w-full !bg-amber-400 !text-slate-900 hover:!bg-amber-300 !border-transparent">
                 مشاهده پروفایل
               </Button>
             </Link>
           </div>
         ) : (
-          <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100">
-            <p className="text-sm text-gray-600 mb-3">برای دسترسی به امکانات بیشتر وارد شوید</p>
+          <div className="p-4 bg-[var(--surface-muted)] border-b border-[var(--border)]">
+            <p className="text-sm text-[var(--text-secondary)] mb-3">برای دسترسی به امکانات بیشتر وارد شوید</p>
             <button
+              type="button"
               onClick={() => {
                 onClose();
                 onShowAuthModal();
               }}
-              className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all font-semibold"
+              className="w-full px-4 py-2.5 rounded-[var(--radius-md)] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors font-semibold shadow-sm"
             >
               ورود / ثبت نام
             </button>
           </div>
         )}
 
-        {/* Navigation Links */}
-        <nav className="py-4">
-          <Link
-            href="/"
-            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={onClose}
-          >
-            <svg className="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            <span className="font-medium">صفحه اصلی</span>
-          </Link>
-          
-          <Link
-            href="/products"
-            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={onClose}
-          >
-            <svg className="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            <span className="font-medium">محصولات</span>
-          </Link>
-
-          <Link
-            href="/about"
-            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={onClose}
-          >
-            <svg className="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="font-medium">درباره ما</span>
-          </Link>
-
-          <Link
-            href="/contact"
-            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={onClose}
-          >
-            <svg className="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <span className="font-medium">تماس با ما</span>
-          </Link>
+        <nav className="mobile-menu-drawer__nav" aria-label="ناوبری موبایل">
+          {SITE_NAV.map((item) => {
+            const active = navIsActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center px-4 py-3 font-medium transition-colors ${
+                  active
+                    ? 'text-[var(--primary-hover)] bg-[var(--primary-muted)] border-s-2 border-[var(--primary)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface-muted)]'
+                }`}
+                onClick={onClose}
+                aria-current={active ? 'page' : undefined}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
 
           {isAuthenticated && (
             <>
-              <div className="my-2 border-t border-gray-200" />
+              <div className="my-2 border-t border-[var(--border)]" />
               
               <Link
                 href="/orders"
-                className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex items-center px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors rounded-none"
                 onClick={onClose}
               >
-                <svg className="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 ml-3 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 <span className="font-medium">سفارشات من</span>
@@ -325,10 +413,10 @@ const MobileMenu: React.FC<{
 
               <Link
                 href="/wishlist"
-                className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex items-center px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors rounded-none"
                 onClick={onClose}
               >
-                <svg className="w-5 h-5 ml-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 ml-3 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 <span className="font-medium">لیست علاقه‌مندی‌ها</span>
@@ -339,23 +427,26 @@ const MobileMenu: React.FC<{
 
         {/* Logout Button */}
         {isAuthenticated && (
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-[var(--border)] bg-[var(--surface-muted)]/50 mt-auto">
             <button
+              type="button"
               onClick={() => {
                 onLogout();
                 onClose();
               }}
               className="w-full flex items-center justify-center px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
             >
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               خروج از حساب
             </button>
           </div>
         )}
-      </div>
-    </>
+        </div>
+      </aside>
+    </div>,
+    document.body
   );
 };
 
@@ -364,7 +455,7 @@ export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+  const [authModalTab] = useState<'login' | 'register'>('login');
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -372,7 +463,24 @@ export const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { results: globalResults, loading: globalLoading } = useGlobalSearch(searchQuery, { limit: 6, debounceMs: 250 });
   
+  const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuthContext();
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsSearchOpen(false);
+  }, [pathname]);
+
+  // بستن منوی موبایل هنگام رسیدن به breakpoint دسکتاپ
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => {
+      if (mq.matches) setIsMenuOpen(false);
+    };
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   // Load sample notifications and issues
   useEffect(() => {
@@ -423,25 +531,16 @@ export const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMenuOpen]);
-
   const handleUserIconClick = () => {
+    setIsMenuOpen(false);
+    setIsSearchOpen(false);
     if (isAuthenticated) {
       setIsUserDropdownOpen(!isUserDropdownOpen);
       setIsNotificationsOpen(false);
     } else {
       setIsAuthModalOpen(true);
       setIsUserDropdownOpen(false);
+      setIsNotificationsOpen(false);
     }
   };
 
@@ -490,7 +589,8 @@ export const Header: React.FC = () => {
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <>
+    <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-[0_1px_3px_0_rgb(15_23_42_/_0.06)]">
       {/* Issues Banner */}
       {systemIssues.length > 0 && (
         <div className={`border-b ${
@@ -498,7 +598,7 @@ export const Header: React.FC = () => {
             ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200' 
             : getHighestSeverity() === 'high'
             ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200'
-            : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+            : 'bg-gradient-to-l from-[var(--primary-muted)] to-[var(--surface-muted)] border-[var(--primary)]/25'
         }`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center justify-between">
@@ -508,7 +608,7 @@ export const Header: React.FC = () => {
                     ? 'text-red-500' 
                     : getHighestSeverity() === 'high'
                     ? 'text-yellow-500'
-                    : 'text-blue-500'
+                    : 'text-[var(--primary)]'
                 }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
@@ -517,7 +617,7 @@ export const Header: React.FC = () => {
                     ? 'text-red-800' 
                     : getHighestSeverity() === 'high'
                     ? 'text-yellow-800'
-                    : 'text-blue-800'
+                    : 'text-emerald-900'
                 }`}>
                   {process.env.NODE_ENV === 'development' ? 'مشکلات سیستم:' : 'اطلاعیه مهم:'}
                 </span>
@@ -526,7 +626,7 @@ export const Header: React.FC = () => {
                     ? 'text-red-700' 
                     : getHighestSeverity() === 'high'
                     ? 'text-yellow-700'
-                    : 'text-blue-700'
+                    : 'text-emerald-800'
                 }`}>
                   {systemIssues[0].title}
                 </span>
@@ -536,7 +636,7 @@ export const Header: React.FC = () => {
                       ? 'text-red-600' 
                       : getHighestSeverity() === 'high'
                       ? 'text-yellow-600'
-                      : 'text-blue-600'
+                      : 'text-emerald-700'
                   }`}>
                     +{systemIssues.length - 1}
                   </span>
@@ -552,7 +652,7 @@ export const Header: React.FC = () => {
                     ? 'text-red-500 hover:text-red-700' 
                     : getHighestSeverity() === 'high'
                     ? 'text-yellow-500 hover:text-yellow-700'
-                    : 'text-blue-500 hover:text-blue-700'
+                    : 'text-[var(--primary)] hover:text-[var(--primary-hover)]'
                 }`}
                 title="بستن"
               >
@@ -570,138 +670,114 @@ export const Header: React.FC = () => {
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center space-x-2 space-x-reverse">
-              <Image
-                src="/logo.svg"
-                alt="فروشگاه ابزار"
-                width={32}
-                height={32}
-                className="w-7 h-7 sm:w-8 sm:h-8"
-              />
-              <span className="text-base sm:text-xl font-bold text-gray-900 hidden xs:inline">فروشگاه ابزار</span>
+            <Link href="/" className="group flex items-center gap-2">
+              <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[var(--radius-md)] bg-[var(--primary-muted)] ring-1 ring-[var(--primary)]/20 transition group-hover:ring-[var(--primary)]/40">
+                <Image
+                  src="/logo.svg"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="w-6 h-6 sm:w-7 sm:h-7"
+                  aria-hidden
+                />
+              </span>
+              <span className="text-base sm:text-lg font-bold text-[var(--text-primary)] hidden sm:inline tracking-tight">
+                فروشگاه ابزار
+              </span>
             </Link>
           </div>
 
+          <nav className="hidden lg:flex items-center gap-0.5 shrink-0 ms-2 xl:ms-4" aria-label="ناوبری اصلی">
+            {SITE_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`header-nav-link ${navIsActive(pathname, item.href) ? 'header-nav-link--active' : ''}`}
+                aria-current={navIsActive(pathname, item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
           {/* Desktop Search Bar */}
-          <div className="flex-1 max-w-lg mx-4 lg:mx-8 hidden md:block">
+          <div className="flex-1 max-w-md mx-3 lg:mx-6 hidden md:block min-w-0">
             <div className="relative">
               <input
-                type="text"
+                type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="جستجو در محصولات..."
-                className="w-full pr-10 pl-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500 text-gray-900"
+                placeholder="جستجو در محصولات و دسته‌بندی‌ها..."
+                className="header-search-input"
+                aria-label="جستجو"
               />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute inset-y-0 end-0 pe-3 flex items-center pointer-events-none text-[var(--text-muted)]">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 start-0 ps-3 flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   aria-label="پاک کردن جستجو"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               )}
-
-              {searchQuery.trim().length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden">
-                  {globalLoading ? (
-                    <div className="px-4 py-3 text-sm text-gray-500">در حال جستجو...</div>
-                  ) : (
-                    <div className="max-h-96 overflow-y-auto">
-                      {/* Categories */}
-                      {globalResults.categories.length > 0 && (
-                        <div className="py-2">
-                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">دسته‌بندی‌ها</div>
-                          {globalResults.categories.map((c) => (
-                            <Link key={c.slug} href={`/categories/${c.slug}`} className="flex items-center px-4 py-2 hover:bg-gray-50">
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900 truncate">{c.name}</div>
-                                <div className="text-xs text-gray-500 truncate">{c.productCount} محصول</div>
-                              </div>
-                              <svg className="w-4 h-4 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                              </svg>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Products */}
-                      {globalResults.products.length > 0 && (
-                        <div className="py-2 border-t border-gray-100">
-                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">محصولات</div>
-                          {globalResults.products.map((p) => (
-                            <Link key={p.slug} href={`/products/${p.slug}`} className="flex items-center px-4 py-2 hover:bg-gray-50">
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900 truncate">{p.name}</div>
-                                <div className="text-xs text-gray-500 truncate">{p.price?.toLocaleString?.('fa-IR')} تومان</div>
-                              </div>
-                              <svg className="w-4 h-4 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                              </svg>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {globalResults.categories.length === 0 && globalResults.products.length === 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-500">نتیجه‌ای یافت نشد</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+              <SearchResultsPanel
+                loading={globalLoading}
+                results={globalResults}
+                query={searchQuery}
+              />
             </div>
           </div>
 
           {/* Right Side Icons */}
-          <div className="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile Search */}
             <button
+              type="button"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="md:hidden p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              className="header-icon-btn header-mobile-only"
+              aria-label={isSearchOpen ? 'بستن جستجو' : 'باز کردن جستجو'}
+              aria-expanded={isSearchOpen}
             >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
 
-            {/* Wishlist - Hidden on small mobile */}
-            <button className="hidden sm:flex relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/wishlist" className="header-icon-btn relative hidden sm:inline-flex" title="علاقه‌مندی‌ها">
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              <Badge size="sm" className="absolute -top-1 -right-1 scale-75 sm:scale-100">0</Badge>
-            </button>
+            </Link>
 
-            {/* Cart - Hidden on small mobile */}
-            <button className="hidden sm:flex relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+            <button type="button" className="header-icon-btn relative hidden sm:inline-flex" title="سبد خرید" aria-label="سبد خرید">
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L4.9 18.6M7 13h10m0 0l1.8 5.6M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
               </svg>
-              <Badge size="sm" className="absolute -top-1 -right-1 scale-75 sm:scale-100">0</Badge>
+              <Badge size="sm" className="absolute -top-1 -end-1 scale-75 sm:scale-100 !bg-[var(--primary)] !text-white">0</Badge>
             </button>
 
-            {/* Notifications - Desktop Only */}
             <div className="relative notifications-dropdown hidden lg:block">
               <button
+                type="button"
                 onClick={handleNotificationsClick}
-                className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                className="header-icon-btn relative"
                 title="اعلانات"
+                aria-label="اعلانات"
+                aria-expanded={isNotificationsOpen}
               >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 {unreadNotificationsCount > 0 && (
-                  <Badge size="sm" className="absolute -top-1 -right-1 bg-red-500 text-white animate-pulse">
+                  <Badge size="sm" className="absolute -top-1 -end-1 bg-red-500 text-white animate-pulse">
                     {unreadNotificationsCount}
                   </Badge>
                 )}
@@ -714,42 +790,56 @@ export const Header: React.FC = () => {
               />
             </div>
 
-            {/* User Menu - Desktop Only */}
-            <div className="relative user-dropdown hidden md:block">
+            {!isAuthenticated && (
+              <button
+                type="button"
+                onClick={handleUserIconClick}
+                className="header-icon-btn header-mobile-only"
+                aria-label="ورود / ثبت نام"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+            )}
+
+            <div className="relative user-dropdown hidden lg:block">
               {isAuthenticated ? (
                 <button
+                  type="button"
                   onClick={handleUserIconClick}
-                  className="flex items-center space-x-2 space-x-reverse p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 p-1.5 sm:p-2 rounded-[var(--radius-md)] hover:bg-[var(--surface-muted)] transition-colors"
+                  aria-expanded={isUserDropdownOpen}
+                  aria-haspopup="true"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center shadow-sm ring-2 ring-[var(--primary-light)]">
                     <span className="text-white text-xs sm:text-sm font-semibold">
                       {user?.firstName?.[0] || user?.email?.[0] || 'U'}
                     </span>
                   </div>
-                  <div className="hidden lg:block text-right">
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="hidden lg:block text-start min-w-0">
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                       {user?.firstName || 'کاربر'}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-[var(--text-muted)]">
                       {user?.role === 'admin' ? 'مدیر' : 'کاربر'}
                     </p>
                   </div>
-                  <svg className="hidden lg:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="hidden lg:block w-4 h-4 text-[var(--text-muted)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
               ) : (
-                <button 
+                <button
+                  type="button"
                   onClick={handleUserIconClick}
-                  className="flex items-center space-x-2 space-x-reverse p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-[var(--radius-md)] text-sm font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors shadow-sm"
                   title="ورود / ثبت نام"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700">ورود</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="hidden lg:inline">ورود</span>
                 </button>
               )}
               <UserDropdown
@@ -762,8 +852,11 @@ export const Header: React.FC = () => {
 
             {/* Mobile Menu Button */}
             <button
+              type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              className="header-icon-btn header-mobile-only"
+              aria-label={isMenuOpen ? 'بستن منو' : 'باز کردن منو'}
+              aria-expanded={isMenuOpen}
             >
               <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMenuOpen ? (
@@ -778,89 +871,68 @@ export const Header: React.FC = () => {
 
         {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="md:hidden py-3 border-t border-gray-200">
+          <div className="lg:hidden py-3 border-t border-[var(--border)] bg-[var(--surface-muted)]/30">
             <div className="relative">
               <input
-                type="text"
+                type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="جستجو در محصولات و دسته‌بندی‌ها..."
-                className="w-full pr-10 pl-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500 text-gray-900"
+                className="header-search-input"
                 autoFocus
+                aria-label="جستجو"
               />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute inset-y-0 end-0 pe-3 flex items-center pointer-events-none text-[var(--text-muted)]">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 start-0 ps-3 flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   aria-label="پاک کردن جستجو"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               )}
-
-              {searchQuery.trim().length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-40 overflow-hidden max-h-[70vh] overflow-y-auto">
-                  {globalLoading ? (
-                    <div className="px-4 py-3 text-sm text-gray-500">در حال جستجو...</div>
-                  ) : (
-                    <>
-                      {globalResults.categories.length > 0 && (
-                        <div className="py-2">
-                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">دسته‌بندی‌ها</div>
-                          {globalResults.categories.map((c) => (
-                            <Link key={c.slug} href={`/categories/${c.slug}`} className="block px-4 py-2.5 hover:bg-gray-50" onClick={() => setIsSearchOpen(false)}>
-                              <div className="text-sm font-medium text-gray-900">{c.name}</div>
-                              <div className="text-xs text-gray-500">{c.productCount} محصول</div>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                      {globalResults.products.length > 0 && (
-                        <div className="py-2 border-t border-gray-100">
-                          <div className="px-4 py-1 text-xs font-semibold text-gray-500">محصولات</div>
-                          {globalResults.products.map((p) => (
-                            <Link key={p.slug} href={`/products/${p.slug}`} className="block px-4 py-2.5 hover:bg-gray-50" onClick={() => setIsSearchOpen(false)}>
-                              <div className="text-sm font-medium text-gray-900">{p.name}</div>
-                              <div className="text-xs text-gray-500">{p.price?.toLocaleString?.('fa-IR')} تومان</div>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                      {globalResults.categories.length === 0 && globalResults.products.length === 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-500">نتیجه‌ای یافت نشد</div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+              <SearchResultsPanel
+                loading={globalLoading}
+                results={globalResults}
+                query={searchQuery}
+                onNavigate={() => setIsSearchOpen(false)}
+                maxHeightClass="max-h-[70vh]"
+              />
             </div>
           </div>
         )}
       </div>
-
-      {/* Mobile Menu */}
-      <MobileMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        isAuthenticated={isAuthenticated}
-        user={user}
-        onLogout={handleLogout}
-        onShowAuthModal={() => setIsAuthModalOpen(true)}
-      />
-
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        defaultTab={authModalTab}
-      />
     </header>
+
+    <MobileMenu
+      isOpen={isMenuOpen}
+      onClose={() => setIsMenuOpen(false)}
+      pathname={pathname}
+      isAuthenticated={isAuthenticated}
+      user={user}
+      onLogout={handleLogout}
+      onShowAuthModal={() => {
+        setIsMenuOpen(false);
+        setIsSearchOpen(false);
+        setIsAuthModalOpen(true);
+      }}
+    />
+
+    <AuthModal
+      isOpen={isAuthModalOpen}
+      onClose={() => setIsAuthModalOpen(false)}
+      defaultTab={authModalTab}
+    />
+    </>
   );
 };
+
+

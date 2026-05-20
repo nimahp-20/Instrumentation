@@ -2,13 +2,13 @@ import React from 'react';
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen page-surface py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             تماس با ما
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-slate-700">
             ما اینجا هستیم تا به شما کمک کنیم
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">تلفن</h3>
-                    <p className="text-gray-600">+98 21 1234 5678</p>
+                    <p className="text-slate-700">+98 21 1234 5678</p>
                   </div>
                 </div>
 
@@ -113,7 +113,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">ایمیل</h3>
-                    <p className="text-gray-600">info@example.com</p>
+                    <p className="text-slate-700">info@example.com</p>
                   </div>
                 </div>
 
@@ -128,7 +128,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">آدرس</h3>
-                    <p className="text-gray-600">تهران، ایران</p>
+                    <p className="text-slate-700">تهران، ایران</p>
                   </div>
                 </div>
               </div>
@@ -140,15 +140,15 @@ export default function ContactPage() {
               </h2>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">شنبه تا چهارشنبه</span>
+                  <span className="text-slate-700">شنبه تا چهارشنبه</span>
                   <span className="font-medium">9:00 - 18:00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">پنج‌شنبه</span>
+                  <span className="text-slate-700">پنج‌شنبه</span>
                   <span className="font-medium">9:00 - 14:00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">جمعه</span>
+                  <span className="text-slate-700">جمعه</span>
                   <span className="font-medium text-red-600">تعطیل</span>
                 </div>
               </div>

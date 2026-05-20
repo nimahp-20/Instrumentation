@@ -280,12 +280,9 @@ const productSchema = new Schema<IProduct>({
 });
 
 // Indexes for better performance
-categorySchema.index({ slug: 1 });
 categorySchema.index({ isActive: 1, sortOrder: 1 });
 categorySchema.index({ parentCategory: 1 });
 
-productSchema.index({ slug: 1 });
-productSchema.index({ sku: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ isActive: 1, isFeatured: 1 });
 productSchema.index({ price: 1 });
@@ -309,23 +306,21 @@ productSchema.virtual('stockStatus').get(function(this: IProduct) {
 });
 
 // Pre-save middleware to update product count in category
-productSchema.pre('save', async function(this: IProduct, next: any) {
+productSchema.pre('save', async function(this: IProduct) {
   if (this.isNew || this.isModified('category')) {
     const Category = mongoose.model('Category');
     await Category.findByIdAndUpdate(this.category, {
       $inc: { productCount: 1 }
     });
   }
-  next();
 });
 
 // Pre-delete middleware to update product count in category
-productSchema.pre('deleteOne', async function(this: IProduct, next: any) {
+productSchema.pre('deleteOne', { document: true, query: false }, async function(this: IProduct) {
   const Category = mongoose.model('Category');
   await Category.findByIdAndUpdate(this.category, {
     $inc: { productCount: -1 }
   });
-  next();
 });
 
 // Create models

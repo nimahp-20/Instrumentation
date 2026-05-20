@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
-import { Category } from '@/lib/models';
+import { Category, Product } from '@/lib/models';
+import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { pickCategoryPayload } from '@/lib/admin-payload';
+import { isAllowedCategoryImageValue } from '@/lib/category-image-validation';
 
 // GET /api/categories/[slug] - Get category by slug
 export async function GET(
@@ -10,24 +13,23 @@ export async function GET(
   try {
     await connectToDatabase();
     const { slug } = await params;
-    
-    const category = await Category.findOne({ 
-      slug: slug, 
-      isActive: true 
+
+    const category = await Category.findOne({
+      slug: slug,
+      isActive: true,
     }).select('-__v');
-    
+
     if (!category) {
       return NextResponse.json(
         { success: false, error: 'Category not found' },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json({
       success: true,
-      data: category
+      data: category,
     });
-    
   } catch (error) {
     console.error('Error fetching category:', error);
     return NextResponse.json(
@@ -37,35 +39,53 @@ export async function GET(
   }
 }
 
-// PUT /api/categories/[slug] - Update category
-export async function PUT(
-  request: NextRequest,
+// PUT /api/categories/[slug] - Update category (admin only)
+async function updateCategory(
+  request: AuthenticatedRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
     const { slug } = await params;
-    
-    const body = await request.json();
-    
+
+    const raw = await request.json();
+    const body = pickCategoryPayload(raw as Record<string, unknown>);
+    delete body.slug;
+
+    if (Object.keys(body).length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'هیچ فیلدی برای به‌روزرسانی ارسال نشده است' },
+        { status: 400 }
+      );
+    }
+
+    if (body.image !== undefined && !isAllowedCategoryImageValue(body.image)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'آدرس تصویر معتبر نیست؛ از آپلود فایل در پنل یا URL امن https استفاده کنید',
+        },
+        { status: 400 }
+      );
+    }
+
     const category = await Category.findOneAndUpdate(
-      { slug: slug },
+      { slug },
       body,
       { new: true, runValidators: true }
     ).select('-__v');
-    
+
     if (!category) {
       return NextResponse.json(
         { success: false, error: 'Category not found' },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json({
       success: true,
-      data: category
+      data: category,
     });
-    
   } catch (error) {
     console.error('Error updating category:', error);
     return NextResponse.json(
@@ -75,29 +95,41 @@ export async function PUT(
   }
 }
 
-// DELETE /api/categories/[slug] - Delete category
-export async function DELETE(
-  request: NextRequest,
+// DELETE /api/categories/[slug] - Delete category (admin only)
+async function deleteCategory(
+  _request: AuthenticatedRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
     const { slug } = await params;
-    
-    const category = await Category.findOneAndDelete({ slug: slug });
-    
+
+    const category = await Category.findOne({ slug });
+
     if (!category) {
       return NextResponse.json(
         { success: false, error: 'Category not found' },
         { status: 404 }
       );
     }
-    
+
+    const productCount = await Product.countDocuments({ category: category._id });
+    if (productCount > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `این دسته ${productCount.toLocaleString('fa-IR')} محصول دارد؛ ابتدا محصولات را منتقل یا حذف کنید`,
+        },
+        { status: 400 }
+      );
+    }
+
+    await category.deleteOne();
+
     return NextResponse.json({
       success: true,
-      message: 'Category deleted successfully'
+      message: 'Category deleted successfully',
     });
-    
   } catch (error) {
     console.error('Error deleting category:', error);
     return NextResponse.json(
@@ -105,4 +137,18 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ slug: string }> }
+) {
+  return withAdminAuth((req) => updateCategory(req, context))(request);
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ slug: string }> }
+) {
+  return withAdminAuth((req) => deleteCategory(req, context))(request);
 }

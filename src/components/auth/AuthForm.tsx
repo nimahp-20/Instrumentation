@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { Button, Input } from '@/components/ui';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -54,7 +55,7 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
           onError?.(response.message);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       onError?.('خطای شبکه - لطفاً دوباره تلاش کنید');
     } finally {
       setIsLoading(false);
@@ -72,12 +73,12 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-lg sm:rounded-xl shadow-lg p-6 sm:p-8">
+    <div className="w-full max-w-md mx-auto card-base p-6 sm:p-8 shadow-md">
       <div className="text-center mb-6 sm:mb-8">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           {mode === 'login' ? 'ورود' : 'ثبت نام'}
         </h2>
-        <p className="text-sm sm:text-base text-gray-600">
+        <p className="text-sm sm:text-base text-slate-700">
           {mode === 'login' 
             ? 'به حساب کاربری خود وارد شوید' 
             : 'حساب کاربری جدید ایجاد کنید'
@@ -85,7 +86,7 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <form onSubmit={handleSubmit} className="stack-md">
         {mode === 'register' && (
           <>
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
@@ -178,7 +179,7 @@ export function AuthForm({ mode, onSuccess, onError }: AuthFormProps) {
       </form>
 
       <div className="mt-4 sm:mt-6 text-center">
-        <p className="text-sm sm:text-base text-gray-600">
+        <p className="text-sm sm:text-base text-slate-700">
           {mode === 'login' ? 'حساب کاربری ندارید؟' : 'قبلاً ثبت نام کرده‌اید؟'}
           <button
             type="button"

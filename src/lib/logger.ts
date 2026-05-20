@@ -14,7 +14,7 @@ export interface LogContext {
   url?: string;
   statusCode?: number;
   responseTime?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   stack?: string;
   tags?: string[];
   context?: LogContext;
@@ -27,7 +27,7 @@ export interface LogOptions {
   version?: string;
   context?: LogContext;
   requestId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class Logger {

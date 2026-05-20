@@ -1,37 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { seedDatabase } from '@/lib/seed-products';
 
-// GET /api/seed - Check if seeding is available
+function isSeedAllowed(secretKey: unknown): boolean {
+  const expected = process.env.SEED_SECRET;
+  if (!expected) return false;
+  return typeof secretKey === 'string' && secretKey.length > 0 && secretKey === expected;
+}
+
+// GET /api/seed - disabled in production
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 });
+  }
+
   return NextResponse.json({
     success: true,
-    message: 'Seed endpoint is available. Use POST with secretKey for production.',
-    production: process.env.NODE_ENV === 'production'
+    message: 'Seed endpoint (development only). POST with { secretKey } matching SEED_SECRET.',
   });
 }
 
-// POST /api/seed - Seed the database with random data
+// POST /api/seed - requires SEED_SECRET env variable
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV === 'production' && !process.env.SEED_SECRET) {
+    return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 });
+  }
+
   try {
-    // Allow seeding in production with a secret key for security
     const { secretKey } = await request.json().catch(() => ({}));
-    
-    if (process.env.NODE_ENV === 'production' && secretKey !== 'seed-production-2024') {
+
+    if (!isSeedAllowed(secretKey)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid secret key for production seeding' },
+        { success: false, error: 'Unauthorized' },
         { status: 403 }
       );
     }
-    
+
     console.log('🌱 Starting database seeding...');
     const result = await seedDatabase();
-    
+
     return NextResponse.json({
       success: true,
       message: 'Database seeded successfully',
-      data: result
+      data: result,
     });
-    
   } catch (error) {
     console.error('Error seeding database:', error);
     return NextResponse.json(

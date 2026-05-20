@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { IconBox, IconHeart, IconUser } from './ProfileIcons';
 
 export type TabType = 'profile' | 'favorites' | 'orders';
 
@@ -11,58 +12,54 @@ interface TabNavigationProps {
   ordersCount: number;
 }
 
-export const TabNavigation: React.FC<TabNavigationProps> = ({ 
-  activeTab, 
-  onTabChange, 
-  favoritesCount, 
-  ordersCount 
+export const TabNavigation: React.FC<TabNavigationProps> = ({
+  activeTab,
+  onTabChange,
+  favoritesCount,
+  ordersCount,
 }) => {
+  const tabClass = (tab: TabType) => {
+    const active = activeTab === tab;
+    return `flex-shrink-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 rounded-[10px] text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+      active
+        ? 'text-white shadow-md'
+        : 'text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-slate-100/90'
+    }`;
+  };
+
+  const activeStyle =
+    { background: 'linear-gradient(90deg, var(--admin-header) 0%, var(--admin-primary) 100%)' } as const;
+
   return (
-    <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-4 sm:mb-6">
-      <div className="flex border-b border-gray-200 overflow-x-auto">
-        <button
-          onClick={() => onTabChange('profile')}
-          className={`flex-shrink-0 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'profile'
-              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center justify-center gap-1 sm:gap-2">
-            <span className="text-base sm:text-lg">👤</span>
-            <span className="hidden xs:inline">پروفایل</span>
-            <span className="xs:hidden">پروفایل</span>
-          </div>
+    <div className="profile-card p-1.5 sm:p-2 mb-5 sm:mb-6">
+      <div className="flex rounded-[10px] bg-slate-100/80 p-1 gap-1 overflow-x-auto scrollbar-thin">
+        <button type="button" onClick={() => onTabChange('profile')} className={tabClass('profile')} style={activeTab === 'profile' ? activeStyle : undefined}>
+          <IconUser className={`w-5 h-5 shrink-0 ${activeTab === 'profile' ? 'opacity-100' : 'opacity-70'}`} />
+          <span>پروفایل</span>
         </button>
-        <button
-          onClick={() => onTabChange('favorites')}
-          className={`flex-shrink-0 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'favorites'
-              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center justify-center gap-1 sm:gap-2">
-            <span className="text-base sm:text-lg">❤️</span>
-            <span className="hidden sm:inline">علاقه‌مندی‌ها</span>
-            <span className="sm:hidden">علاقه‌ها</span>
-            <span className="bg-red-100 text-red-600 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">{favoritesCount}</span>
-          </div>
+        <button type="button" onClick={() => onTabChange('favorites')} className={tabClass('favorites')} style={activeTab === 'favorites' ? activeStyle : undefined}>
+          <IconHeart className={`w-5 h-5 shrink-0 ${activeTab === 'favorites' ? 'opacity-100' : 'opacity-70'}`} />
+          <span className="hidden xs:inline">علاقه‌مندی‌ها</span>
+          <span className="xs:hidden">علاقه‌ها</span>
+          <span
+            className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${
+              activeTab === 'favorites' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'
+            }`}
+          >
+            {favoritesCount}
+          </span>
         </button>
-        <button
-          onClick={() => onTabChange('orders')}
-          className={`flex-shrink-0 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'orders'
-              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <div className="flex items-center justify-center gap-1 sm:gap-2">
-            <span className="text-base sm:text-lg">📦</span>
-            <span className="hidden sm:inline">سفارش‌ها</span>
-            <span className="sm:hidden">سفارش</span>
-            <span className="bg-blue-100 text-blue-600 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">{ordersCount}</span>
-          </div>
+        <button type="button" onClick={() => onTabChange('orders')} className={tabClass('orders')} style={activeTab === 'orders' ? activeStyle : undefined}>
+          <IconBox className={`w-5 h-5 shrink-0 ${activeTab === 'orders' ? 'opacity-100' : 'opacity-70'}`} />
+          <span className="hidden sm:inline">سفارش‌ها</span>
+          <span className="sm:hidden">سفارش</span>
+          <span
+            className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${
+              activeTab === 'orders' ? 'bg-white/25 text-white' : 'bg-sky-100 text-sky-800'
+            }`}
+          >
+            {ordersCount}
+          </span>
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { IconPencil, IconSave, IconUser, IconX } from './ProfileIcons';
 
 interface User {
   firstName?: string;
@@ -35,132 +36,115 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
   isSubmitting,
   onEditToggle,
   onInputChange,
-  onSubmit
+  onSubmit,
 }) => {
   return (
-    <div className="lg:col-span-3 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">👤</span>
+    <div className="lg:col-span-3 profile-card p-6 md:p-8">
+      <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-4 mb-6">
+        <h2 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2.5">
+          <span className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--admin-primary)] bg-sky-50 border border-sky-100">
+            <IconUser className="w-5 h-5" />
+          </span>
           اطلاعات شخصی
         </h2>
-        <button
-          onClick={onEditToggle}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-            isEditing
-              ? 'bg-red-100 text-red-600 hover:bg-red-200'
-              : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-          }`}
-        >
-          {isEditing ? '❌ انصراف' : '✏️ ویرایش'}
+        <button type="button" onClick={onEditToggle} className={isEditing ? 'profile-btn-danger-ghost px-4 py-2.5' : 'profile-btn-accent-ghost px-4 py-2.5 inline-flex items-center justify-center gap-2'}>
+          {isEditing ? (
+            <>
+              <IconX className="w-4 h-4" />
+              انصراف
+            </>
+          ) : (
+            <>
+              <IconPencil className="w-4 h-4" />
+              ویرایش
+            </>
+          )}
         </button>
       </div>
 
-      {/* Success/Error Messages */}
       {editSuccess && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-200 text-green-800 rounded-lg text-sm">
-          {editSuccess}
-        </div>
+        <div className="mb-4 p-3.5 rounded-[10px] text-sm font-medium border border-emerald-200 bg-emerald-50 text-emerald-900">{editSuccess}</div>
       )}
       {editError && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-200 text-red-800 rounded-lg text-sm">
-          {editError}
-        </div>
+        <div className="mb-4 p-3.5 rounded-[10px] text-sm font-medium border border-red-200 bg-red-50 text-red-900">{editError}</div>
       )}
 
       <form onSubmit={onSubmit}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-500">نام</label>
+            <label className="text-sm font-semibold text-[var(--admin-muted)]">نام</label>
             {isEditing ? (
               <input
                 type="text"
                 value={editForm.firstName}
                 onChange={(e) => onInputChange('firstName', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-3 profile-input"
                 placeholder="نام خود را وارد کنید"
               />
             ) : (
-              <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-900 font-medium">
-                {user?.firstName || '-'}
-              </div>
+              <div className="px-4 py-3 profile-field-readonly font-medium">{user?.firstName || '—'}</div>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-500">نام خانوادگی</label>
+            <label className="text-sm font-semibold text-[var(--admin-muted)]">نام خانوادگی</label>
             {isEditing ? (
               <input
                 type="text"
                 value={editForm.lastName}
                 onChange={(e) => onInputChange('lastName', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-3 profile-input"
                 placeholder="نام خانوادگی خود را وارد کنید"
               />
             ) : (
-              <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-900 font-medium">
-                {user?.lastName || '-'}
-              </div>
+              <div className="px-4 py-3 profile-field-readonly font-medium">{user?.lastName || '—'}</div>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-500">آدرس ایمیل</label>
+            <label className="text-sm font-semibold text-[var(--admin-muted)]">آدرس ایمیل</label>
             {isEditing ? (
               <input
                 type="email"
                 value={editForm.email}
                 onChange={(e) => onInputChange('email', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-3 profile-input"
                 placeholder="ایمیل خود را وارد کنید"
               />
             ) : (
-              <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-900 font-medium">
-                {user?.email}
-              </div>
+              <div className="px-4 py-3 profile-field-readonly font-medium break-all">{user?.email}</div>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-500">شماره تماس</label>
+            <label className="text-sm font-semibold text-[var(--admin-muted)]">شماره تماس</label>
             {isEditing ? (
               <input
                 type="tel"
                 value={editForm.phone}
                 onChange={(e) => onInputChange('phone', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                className="w-full px-4 py-3 profile-input"
                 placeholder="شماره تماس خود را وارد کنید"
               />
             ) : (
-              <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-900 font-medium">
-                {user?.phone || 'ثبت نشده'}
-              </div>
+              <div className="px-4 py-3 profile-field-readonly font-medium">{user?.phone || 'ثبت نشده'}</div>
             )}
           </div>
         </div>
 
-        {/* Submit Button */}
         {isEditing && (
-          <div className="mt-6 flex gap-3">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center gap-2"
-            >
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button type="submit" disabled={isSubmitting} className="profile-btn-primary px-6 py-3 inline-flex items-center gap-2">
               {isSubmitting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span className="w-4 h-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin shrink-0" />
                   در حال ذخیره...
                 </>
               ) : (
                 <>
-                  <span>💾</span>
+                  <IconSave className="w-5 h-5 shrink-0 opacity-95" />
                   ذخیره تغییرات
                 </>
               )}
             </button>
-            <button
-              type="button"
-              onClick={onEditToggle}
-              className="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-medium transition-colors"
-            >
+            <button type="button" onClick={onEditToggle} className="profile-btn-ghost px-6 py-3">
               انصراف
             </button>
           </div>

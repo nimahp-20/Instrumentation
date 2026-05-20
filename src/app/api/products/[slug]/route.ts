@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
-import { Product } from '@/lib/models';
+import { Product, IProduct } from '@/lib/models';
+
+type ProductWithExtras = Pick<IProduct, 'dimensions' | 'weight' | 'sku'> & {
+  material?: string;
+  color?: string;
+  warranty?: string;
+};
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
 
+    const { slug } = await params;
+
     // Find product by slug
-    const product = await Product.findOne({ slug: params.slug })
+    const product = await Product.findOne({ slug })
       .populate('category', 'name slug')
       .lean();
 
@@ -20,6 +28,8 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    const productDetails = product as unknown as ProductWithExtras;
 
     // Add mock reviews for demonstration
     const reviews = [
@@ -47,19 +57,19 @@ export async function GET(
     ];
 
     // Add detailed specifications based on category
-    const dimensions = (product as any).dimensions 
-      ? `${(product as any).dimensions.length} × ${(product as any).dimensions.width} × ${(product as any).dimensions.height} سانتی‌متر`
+    const dimensions = productDetails.dimensions 
+      ? `${productDetails.dimensions.length} × ${productDetails.dimensions.width} × ${productDetails.dimensions.height} سانتی‌متر`
       : '۲۵ × ۱۵ × ۱۰ سانتی‌متر';
     
     const specifications = {
       'ابعاد': dimensions,
-      'وزن': (product as any).weight ? `${(product as any).weight} گرم` : '۸۰۰ گرم',
-      'جنس': (product as any).material || 'فولاد ضد زنگ',
-      'رنگ': (product as any).color || 'نقره‌ای',
-      'گارانتی': (product as any).warranty || '۲ سال',
+      'وزن': productDetails.weight ? `${productDetails.weight} گرم` : '۸۰۰ گرم',
+      'جنس': productDetails.material || 'فولاد ضد زنگ',
+      'رنگ': productDetails.color || 'نقره‌ای',
+      'گارانتی': productDetails.warranty || '۲ سال',
       'کشور سازنده': 'آلمان',
       'نوع بسته‌بندی': 'جعبه مقوایی',
-      'کد محصول': (product as any).sku,
+      'کد محصول': productDetails.sku,
     };
 
     // Add features based on product type

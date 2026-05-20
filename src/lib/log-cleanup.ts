@@ -45,7 +45,7 @@ export class LogCleanupService {
       });
 
       // Build deletion query
-      const deleteQuery: any = {
+      const deleteQuery: Record<string, unknown> = {
         timestamp: { $lt: cutoffDate }
       };
 

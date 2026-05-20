@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Input, Select } from '@/components/ui';
+import React, { useState, useEffect, useRef } from 'react';
 
 export interface ProductFilters {
   category?: string;
@@ -28,50 +27,58 @@ interface ProductFilterProps {
   loading?: boolean;
 }
 
+const chipActiveStyle = {
+  background: 'linear-gradient(90deg, var(--admin-header) 0%, var(--admin-primary) 100%)',
+} as const;
+
+const labelCls = 'block text-sm font-semibold text-[var(--admin-text)] mb-2';
+
 export const ProductFilter: React.FC<ProductFilterProps> = ({
   filters,
   onFiltersChange,
   categories = [],
   brands = [],
   className = '',
-  loading = false
+  loading = false,
 }) => {
-  // Local state for search input to prevent focus loss
   const [searchValue, setSearchValue] = useState(filters.search || '');
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
-  // Debounced search effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchValue !== filters.search) {
+      const nextSearch = searchValue.trim() || undefined;
+      const current = filtersRef.current;
+      const prevSearch = current.search || undefined;
+      if (nextSearch !== prevSearch) {
         onFiltersChange({
-          ...filters,
-          search: searchValue || undefined
+          ...current,
+          search: nextSearch,
+          page: 1,
         });
       }
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchValue, filters, onFiltersChange]);
+  }, [searchValue, onFiltersChange]);
 
-  // Update local search value when filters change externally
   useEffect(() => {
     setSearchValue(filters.search || '');
   }, [filters.search]);
 
-  const handleFilterChange = (key: keyof ProductFilters, value: any) => {
-    onFiltersChange({
+  const handleFilterChange = (key: keyof ProductFilters, value: ProductFilters[keyof ProductFilters]) => {
+    const next: ProductFilters = {
       ...filters,
-      [key]: value
-    });
+      [key]: value,
+    };
+    if (key === 'sort' || key === 'order') {
+      next.page = 1;
+    }
+    onFiltersChange(next);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
-  };
-
-  const clearFilters = () => {
-    setSearchValue('');
-    onFiltersChange({});
   };
 
   const sortOptions = [
@@ -80,53 +87,58 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
     { value: 'rating', label: 'امتیاز' },
     { value: 'name', label: 'نام' },
     { value: 'popularity', label: 'محبوبیت' },
-    { value: 'stock', label: 'موجودی' }
+    { value: 'stock', label: 'موجودی' },
   ];
 
   const orderOptions = [
     { value: 'desc', label: 'نزولی' },
-    { value: 'asc', label: 'صعودی' }
+    { value: 'asc', label: 'صعودی' },
   ];
 
-  const ratingOptions = [
-    { value: '', label: 'همه امتیازها' },
-    { value: '4.5', label: '۴.۵ ستاره و بالاتر' },
-    { value: '4', label: '۴ ستاره و بالاتر' },
-    { value: '3.5', label: '۳.۵ ستاره و بالاتر' },
-    { value: '3', label: '۳ ستاره و بالاتر' }
+  type QuickKey = 'featured' | 'new' | 'onSale' | 'inStock';
+  const quickItems: { key: QuickKey; label: string }[] = [
+    { key: 'featured', label: 'ویژه' },
+    { key: 'new', label: 'جدید' },
+    { key: 'onSale', label: 'تخفیف' },
+    { key: 'inStock', label: 'موجود' },
   ];
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Simple Search */}
+      {/* جستجو */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">جستجو</label>
+        <label htmlFor="product-filter-search" className={labelCls}>
+          جستجو
+        </label>
         <div className="relative">
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[var(--admin-muted)]">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-          </div>
-          <Input
+          </span>
+          <input
+            id="product-filter-search"
+            type="search"
             placeholder="نام محصول..."
             value={searchValue}
             onChange={handleSearchChange}
             disabled={loading}
-            className="w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+            className="profile-input w-full py-2.5 pr-10 pl-3 text-sm placeholder:text-slate-400 disabled:opacity-50"
           />
         </div>
       </div>
 
-      {/* Simple Filters */}
-      <div className="space-y-4">
-        {/* Category Filter */}
+      <div className="border-t border-slate-100 pt-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">دسته‌بندی</label>
-          <Select
+          <label htmlFor="product-filter-category" className={labelCls}>
+            دسته‌بندی
+          </label>
+          <select
+            id="product-filter-category"
             value={filters.category || ''}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('category', e.target.value || undefined)}
+            onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
             disabled={loading}
-            className="w-full py-2 px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="profile-select w-full py-2.5 text-sm min-h-[2.75rem] disabled:opacity-50"
           >
             <option value="">همه</option>
             {categories.map((category) => (
@@ -134,17 +146,19 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
                 {category.name}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
 
-        {/* Brand Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">برند</label>
-          <Select
+          <label htmlFor="product-filter-brand" className={labelCls}>
+            برند
+          </label>
+          <select
+            id="product-filter-brand"
             value={filters.brand || ''}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('brand', e.target.value || undefined)}
+            onChange={(e) => handleFilterChange('brand', e.target.value || undefined)}
             disabled={loading}
-            className="w-full py-2 px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="profile-select w-full py-2.5 text-sm min-h-[2.75rem] disabled:opacity-50"
           >
             <option value="">همه</option>
             {brands.map((brand) => (
@@ -152,92 +166,72 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
                 {brand}
               </option>
             ))}
-          </Select>
+          </select>
         </div>
 
-        {/* Sort */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">مرتب‌سازی</label>
-          <Select
-            value={filters.sort || 'createdAt'}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('sort', e.target.value)}
-            disabled={loading}
-            className="w-full py-2 px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {/* Order */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">ترتیب</label>
-          <Select
-            value={filters.order || 'desc'}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('order', e.target.value as 'asc' | 'desc')}
-            disabled={loading}
-            className="w-full py-2 px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            {orderOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="product-filter-sort" className={labelCls}>
+              مرتب‌سازی
+            </label>
+            <select
+              id="product-filter-sort"
+              value={filters.sort || 'createdAt'}
+              onChange={(e) => handleFilterChange('sort', e.target.value)}
+              disabled={loading}
+              className="profile-select w-full py-2.5 text-sm min-h-[2.75rem] disabled:opacity-50"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="product-filter-order" className={labelCls}>
+              ترتیب
+            </label>
+            <select
+              id="product-filter-order"
+              value={filters.order || 'desc'}
+              onChange={(e) => handleFilterChange('order', e.target.value as 'asc' | 'desc')}
+              disabled={loading}
+              className="profile-select w-full py-2.5 text-sm min-h-[2.75rem] disabled:opacity-50"
+            >
+              {orderOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Simple Quick Filters */}
-      <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3">فیلترهای سریع</h4>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => handleFilterChange('featured', !filters.featured)}
-            disabled={loading}
-            className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-              filters.featured 
-                ? 'bg-blue-600 text-white border-blue-600' 
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            } disabled:opacity-50`}
-          >
-            ویژه
-          </button>
-          <button
-            onClick={() => handleFilterChange('new', !filters.new)}
-            disabled={loading}
-            className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-              filters.new 
-                ? 'bg-green-600 text-white border-green-600' 
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            } disabled:opacity-50`}
-          >
-            جدید
-          </button>
-          <button
-            onClick={() => handleFilterChange('onSale', !filters.onSale)}
-            disabled={loading}
-            className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-              filters.onSale 
-                ? 'bg-red-600 text-white border-red-600' 
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            } disabled:opacity-50`}
-          >
-            تخفیف
-          </button>
-          <button
-            onClick={() => handleFilterChange('inStock', !filters.inStock)}
-            disabled={loading}
-            className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-              filters.inStock 
-                ? 'bg-purple-600 text-white border-purple-600' 
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            } disabled:opacity-50`}
-          >
-            موجود
-          </button>
+      {/* فیلترهای سریع — هم‌سبک تب‌های پروفایل */}
+      <div className="border-t border-slate-100 pt-5">
+        <p className={labelCls}>فیلترهای سریع</p>
+        <div className="rounded-[10px] bg-slate-100/80 p-1.5 grid grid-cols-2 gap-1.5">
+          {quickItems.map(({ key, label }) => {
+            const active = Boolean(filters[key]);
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={loading}
+                onClick={() => handleFilterChange(key, !filters[key])}
+                className={`min-h-touch rounded-[10px] px-3 py-2.5 text-xs sm:text-sm font-semibold transition-all ${
+                  active
+                    ? 'text-white shadow-md'
+                    : 'text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-white/90'
+                } disabled:opacity-50`}
+                style={active ? chipActiveStyle : undefined}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -36,7 +36,7 @@ export function withLogging(
         // You can decode JWT token here to get user ID
         // For now, we'll extract it from a custom header
         userId = req.headers.get('x-user-id') || undefined;
-      } catch (error) {
+      } catch (_error) {
         // Silent fail for token parsing
       }
     }
@@ -75,7 +75,7 @@ export function withLogging(
             }
           });
         }
-      } catch (error) {
+      } catch (_error) {
         // Silent fail for body logging
       }
     }
@@ -98,8 +98,6 @@ export function withLogging(
     const statusCode = response.status;
 
     // Log response
-    const logLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
-    
     await logger.logRequest(method, pathname, statusCode, responseTime, {
       requestId,
       userId,
@@ -152,7 +150,7 @@ export function withLogging(
             }
           });
         }
-      } catch (error) {
+      } catch (_error) {
         // Silent fail for response body logging
       }
     }

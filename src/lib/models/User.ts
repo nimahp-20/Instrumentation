@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   _id: string;
@@ -23,6 +24,13 @@ export interface IUser extends Document {
   clearRefreshToken(): Promise<void>;
   toJSON(): Partial<IUser>;
 }
+
+type UserTransformRet = Record<string, unknown> & {
+  password?: string;
+  tokenVersion?: number;
+  hashedRefreshToken?: string;
+  __v?: number;
+};
 
 const UserSchema = new Schema<IUser>({
   email: {
@@ -82,7 +90,7 @@ const UserSchema = new Schema<IUser>({
 }, {
   timestamps: true,
   toJSON: {
-    transform: function(doc: any, ret: any) {
+    transform: function(_doc, ret: UserTransformRet) {
       delete ret.password;
       delete ret.tokenVersion;
       delete ret.hashedRefreshToken;
@@ -92,30 +100,21 @@ const UserSchema = new Schema<IUser>({
   }
 });
 
-// Index for better performance
-UserSchema.index({ email: 1 });
 UserSchema.index({ createdAt: -1 });
 
 // Pre-save middleware to hash password
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+UserSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
   
-  try {
-    const bcrypt = require('bcryptjs');
-    const saltRounds = 12;
-    this.password = await bcrypt.hash(this.password, saltRounds);
-    next();
-  } catch (error) {
-    next(error as Error);
-  }
+  const saltRounds = 12;
+  this.password = await bcrypt.hash(this.password, saltRounds);
 });
 
 // Method to compare password
 UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   try {
-    const bcrypt = require('bcryptjs');
     return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
+  } catch {
     throw new Error('خطا در مقایسه رمز عبور');
   }
 };
@@ -124,9 +123,8 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
 UserSchema.methods.compareRefreshToken = async function(candidateToken: string): Promise<boolean> {
   try {
     if (!this.hashedRefreshToken) return false;
-    const bcrypt = require('bcryptjs');
     return await bcrypt.compare(candidateToken, this.hashedRefreshToken);
-  } catch (error) {
+  } catch {
     throw new Error('خطا در مقایسه توکن بازخوانی');
   }
 };
@@ -134,11 +132,10 @@ UserSchema.methods.compareRefreshToken = async function(candidateToken: string):
 // Method to set refresh token (hash and save)
 UserSchema.methods.setRefreshToken = async function(token: string): Promise<void> {
   try {
-    const bcrypt = require('bcryptjs');
     const saltRounds = 12;
     this.hashedRefreshToken = await bcrypt.hash(token, saltRounds);
     await this.save();
-  } catch (error) {
+  } catch {
     throw new Error('خطا در ذخیره توکن بازخوانی');
   }
 };
@@ -148,7 +145,7 @@ UserSchema.methods.clearRefreshToken = async function(): Promise<void> {
   try {
     this.hashedRefreshToken = undefined;
     await this.save();
-  } catch (error) {
+  } catch {
     throw new Error('خطا در پاک کردن توکن بازخوانی');
   }
 };

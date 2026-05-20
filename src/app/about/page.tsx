@@ -2,14 +2,14 @@ import React from 'react';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen page-surface py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             درباره ما
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
             ما یک تیم متخصص هستیم که با هدف ارائه بهترین تجربه خرید آنلاین برای شما تلاش می‌کنیم
           </p>
         </div>
@@ -25,7 +25,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               ماموریت ما
             </h2>
-            <p className="text-gray-600 text-lg leading-relaxed">
+            <p className="text-slate-700 text-lg leading-relaxed">
               ماموریت ما ارائه بهترین محصولات با کیفیت بالا و قیمت مناسب به مشتریان عزیز است. 
               ما اعتقاد داریم که هر مشتری باید تجربه خرید منحصر به فردی داشته باشد.
             </p>
@@ -40,7 +40,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               چشم‌انداز ما
             </h2>
-            <p className="text-gray-600 text-lg leading-relaxed">
+            <p className="text-slate-700 text-lg leading-relaxed">
               ما می‌خواهیم به یکی از معتبرترین و محبوب‌ترین فروشگاه‌های آنلاین در منطقه تبدیل شویم، 
               جایی که مشتریان همیشه بهترین محصولات را با اعتماد کامل خریداری کنند.
             </p>
@@ -60,7 +60,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">کیفیت</h3>
-              <p className="text-gray-600">ما تنها محصولات با کیفیت بالا را ارائه می‌دهیم</p>
+              <p className="text-slate-700">ما تنها محصولات با کیفیت بالا را ارائه می‌دهیم</p>
             </div>
 
             <div className="text-center">
@@ -70,7 +70,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">امنیت</h3>
-              <p className="text-gray-600">اطلاعات و تراکنش‌های شما کاملاً محفوظ است</p>
+              <p className="text-slate-700">اطلاعات و تراکنش‌های شما کاملاً محفوظ است</p>
             </div>
 
             <div className="text-center">
@@ -80,7 +80,7 @@ export default function AboutPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">پشتیبانی</h3>
-              <p className="text-gray-600">تیم پشتیبانی ما همیشه آماده کمک به شماست</p>
+              <p className="text-slate-700">تیم پشتیبانی ما همیشه آماده کمک به شماست</p>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">احمد محمدی</h3>
               <p className="text-gray-600 mb-4">مدیر عامل</p>
-              <p className="text-gray-500 text-sm">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 بیش از 10 سال تجربه در زمینه تجارت الکترونیک
               </p>
             </div>
@@ -108,7 +108,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">سارا احمدی</h3>
               <p className="text-gray-600 mb-4">مدیر فنی</p>
-              <p className="text-gray-500 text-sm">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 متخصص در توسعه نرم‌افزار و مدیریت پروژه
               </p>
             </div>
@@ -119,7 +119,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">علی رضایی</h3>
               <p className="text-gray-600 mb-4">مدیر بازاریابی</p>
-              <p className="text-gray-500 text-sm">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 متخصص در بازاریابی دیجیتال و مدیریت مشتری
               </p>
             </div>

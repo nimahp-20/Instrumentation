@@ -49,14 +49,14 @@ export default function ReturnsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen page-surface py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             سیاست بازگشت
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-700 max-w-3xl mx-auto">
             اطلاعات کامل درباره قوانین و شرایط بازگشت و تعویض محصولات
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function ReturnsPage() {
                   {step.step}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{step.title}</h3>
-                <p className="text-gray-600 text-sm">{step.description}</p>
+                <p className="text-slate-700 text-sm">{step.description}</p>
               </div>
             ))}
           </div>
@@ -97,7 +97,7 @@ export default function ReturnsPage() {
               {conditions[0].items.map((item, index) => (
                 <li key={index} className="flex items-start">
                   <span className="text-green-500 mr-3">✓</span>
-                  <span className="text-gray-600">{item}</span>
+                  <span className="text-slate-700">{item}</span>
                 </li>
               ))}
             </ul>
@@ -116,7 +116,7 @@ export default function ReturnsPage() {
               {conditions[1].items.map((item, index) => (
                 <li key={index} className="flex items-start">
                   <span className="text-red-500 mr-3">✗</span>
-                  <span className="text-gray-600">{item}</span>
+                  <span className="text-slate-700">{item}</span>
                 </li>
               ))}
             </ul>
@@ -136,7 +136,7 @@ export default function ReturnsPage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">زمان بازگشت</h3>
-              <p className="text-gray-600">بازگشت وجه ظرف 3-5 روز کاری پس از دریافت محصول</p>
+              <p className="text-slate-700">بازگشت وجه ظرف 3-5 روز کاری پس از دریافت محصول</p>
             </div>
 
             <div className="text-center">
@@ -146,7 +146,7 @@ export default function ReturnsPage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">هزینه بازگشت</h3>
-              <p className="text-gray-600">هزینه ارسال بازگشت بر عهده مشتری است</p>
+              <p className="text-slate-700">هزینه ارسال بازگشت بر عهده مشتری است</p>
             </div>
 
             <div className="text-center">
@@ -156,7 +156,7 @@ export default function ReturnsPage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">شرایط محصول</h3>
-              <p className="text-gray-600">محصول باید در شرایط اولیه و بدون استفاده باشد</p>
+              <p className="text-slate-700">محصول باید در شرایط اولیه و بدون استفاده باشد</p>
             </div>
           </div>
         </div>

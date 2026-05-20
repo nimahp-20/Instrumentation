@@ -1,4 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import {
+  isAdminSession,
+  setAdminSessionFlag,
+  clearAdminSessionFlag,
+  getLoginRedirectPath,
+} from '@/lib/auth-session';
 
 export interface User {
   id: string;
@@ -18,6 +24,8 @@ export interface AuthTokens {
   refreshToken: string;
   expiresIn: number;
 }
+
+export type AdminLoginPayload = { user: User; expiresIn: number };
 
 export interface AuthState {
   user: User | null;
@@ -39,7 +47,7 @@ export interface RegisterData {
   phone?: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
@@ -63,19 +71,40 @@ class AuthService {
   // Token management
   getTokens(): AuthTokens | null {
     if (typeof window === 'undefined') return null;
-    
+
+    const expiresIn = localStorage.getItem('tokenExpiresIn');
+    if (!expiresIn) return null;
+
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
-    const expiresIn = localStorage.getItem('tokenExpiresIn');
 
-    if (accessToken && refreshToken && expiresIn) {
+    if (isAdminSession()) {
+      return {
+        accessToken: accessToken || '',
+        refreshToken: refreshToken || '',
+        expiresIn: parseInt(expiresIn, 10),
+      };
+    }
+
+    if (accessToken && refreshToken) {
       return {
         accessToken,
         refreshToken,
-        expiresIn: parseInt(expiresIn)
+        expiresIn: parseInt(expiresIn, 10),
       };
     }
     return null;
+  }
+
+  setExpiresIn(expiresIn: number): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('tokenExpiresIn', expiresIn.toString());
+  }
+
+  clearAdminSession(): void {
+    clearAdminSessionFlag();
+    this.clearTokens();
+    this.clearUser();
   }
 
   setTokens(tokens: AuthTokens): void {
@@ -198,7 +227,10 @@ class AuthService {
         if (refreshResult.success) {
           console.log('✅ Token refresh successful, retrying original request...');
           // Retry the original request with new access token
-          headers.Authorization = `Bearer ${refreshResult.data!.tokens.accessToken}`;
+          const newAccess = refreshResult.data!.tokens.accessToken;
+          if (newAccess) {
+            headers.Authorization = `Bearer ${newAccess}`;
+          }
           const retryResponse = await fetch(`${this.baseUrl}${endpoint}`, {
             ...options,
             headers,
@@ -229,6 +261,50 @@ class AuthService {
   }
 
   // Authentication methods
+  async adminLogin(
+    credentials: LoginCredentials
+  ): Promise<ApiResponse<AdminLoginPayload>> {
+    try {
+      const response = await fetch('/api/auth/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+      });
+      const data = (await response.json()) as ApiResponse<AdminLoginPayload>;
+
+      if (data.success && data.data) {
+        setAdminSessionFlag();
+        this.setExpiresIn(data.data.expiresIn);
+        this.setCurrentUser(data.data.user);
+      }
+
+      return data;
+    } catch {
+      return {
+        success: false,
+        message: 'خطای شبکه - لطفاً اتصال اینترنت خود را بررسی کنید',
+      };
+    }
+  }
+
+  async adminLogout(): Promise<ApiResponse> {
+    try {
+      const response = await fetch('/api/auth/admin/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({}),
+      });
+      const data = (await response.json()) as ApiResponse;
+      this.clearAdminSession();
+      return data;
+    } catch {
+      this.clearAdminSession();
+      return { success: false, message: 'خطای شبکه در خروج' };
+    }
+  }
+
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
     // Use rawApiCall for login to avoid token refresh logic
     const response = await this.rawApiCall<{ user: User; tokens: AuthTokens }>('/login', {
@@ -281,8 +357,12 @@ class AuthService {
     console.log('🔄 refreshToken response:', response);
 
     if (response.success && response.data) {
-      console.log('✅ Refresh successful, setting new tokens');
-      this.setTokens(response.data.tokens);
+      const { tokens } = response.data;
+      if (tokens.accessToken) {
+        this.setTokens(tokens as AuthTokens);
+      } else {
+        this.setExpiresIn(tokens.expiresIn);
+      }
     } else {
       console.log('❌ Refresh failed:', response.message);
     }
@@ -383,11 +463,76 @@ export function useAuth() {
         const tokens = authService.getTokens();
         const user = authService.getCurrentUser();
 
+        if (!tokens && isAdminSession()) {
+          const refreshResult = await authService.ensureRefreshed();
+          if (!refreshResult.success) {
+            authService.clearAdminSession();
+            setAuthState({
+              user: null,
+              tokens: null,
+              isLoading: false,
+              isAuthenticated: false,
+            });
+            return;
+          }
+        }
 
-        // Check if we have tokens
-        if (!tokens) {
+        const sessionTokens = authService.getTokens();
+
+        if (!sessionTokens && !isAdminSession()) {
           authService.clearTokens();
           authService.clearUser();
+          setAuthState({
+            user: null,
+            tokens: null,
+            isLoading: false,
+            isAuthenticated: false,
+          });
+          return;
+        }
+
+        if (isAdminSession() && sessionTokens) {
+          if (authService.isTokenExpired()) {
+            const refreshResult = await authService.ensureRefreshed();
+            if (!refreshResult.success) {
+              authService.clearAdminSession();
+              setAuthState({
+                user: null,
+                tokens: null,
+                isLoading: false,
+                isAuthenticated: false,
+              });
+              return;
+            }
+          }
+          const profileResult = await authService.getProfile();
+          if (profileResult.success && profileResult.data?.user.role === 'admin') {
+            authService.setCurrentUser(profileResult.data.user);
+            setAuthState({
+              user: profileResult.data.user,
+              tokens: authService.getTokens(),
+              isLoading: false,
+              isAuthenticated: true,
+            });
+          } else {
+            authService.clearAdminSession();
+            setAuthState({
+              user: null,
+              tokens: null,
+              isLoading: false,
+              isAuthenticated: false,
+            });
+          }
+          return;
+        }
+
+        if (!sessionTokens) {
+          if (isAdminSession()) {
+            authService.clearAdminSession();
+          } else {
+            authService.clearTokens();
+            authService.clearUser();
+          }
           setAuthState({
             user: null,
             tokens: null,
@@ -432,7 +577,7 @@ export function useAuth() {
               isAuthenticated: false,
             });
             // Redirect to login if refresh token expired
-            if ((refreshResult as any).code === 'REFRESH_TOKEN_EXPIRED') {
+            if (refreshResult.code === 'REFRESH_TOKEN_EXPIRED') {
               // Save current URL before redirecting
               const currentPath = window.location.pathname + window.location.search;
               if (currentPath !== '/login' && currentPath !== '/register') {
@@ -527,9 +672,9 @@ export function useAuth() {
   }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
+    clearAdminSessionFlag();
     const response = await authService.login(credentials);
     if (response.success && response.data) {
-      // Save tokens to localStorage
       authService.setTokens(response.data.tokens);
       authService.setCurrentUser(response.data.user);
       setAuthState({
@@ -540,6 +685,29 @@ export function useAuth() {
       });
     }
     return response;
+  }, []);
+
+  const adminLogin = useCallback(async (credentials: LoginCredentials) => {
+    const response = await authService.adminLogin(credentials);
+    if (response.success && response.data) {
+      setAuthState({
+        user: response.data.user,
+        tokens: authService.getTokens(),
+        isLoading: false,
+        isAuthenticated: true,
+      });
+    }
+    return response;
+  }, []);
+
+  const adminLogout = useCallback(async () => {
+    await authService.adminLogout();
+    setAuthState({
+      user: null,
+      tokens: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
   }, []);
 
   const register = useCallback(async (data: RegisterData) => {
@@ -560,7 +728,7 @@ export function useAuth() {
 
   const logout = useCallback(async (logoutAll: boolean = false) => {
     await authService.logout(logoutAll);
-0    // Clear tokens and user from localStorage
+    // Clear tokens and user from localStorage
     authService.clearTokens();
     authService.clearUser();
     setAuthState({
@@ -593,7 +761,7 @@ export function useAuth() {
         ...prev,
         user: response.data!.user,
       }));
-    } else if (response.message === 'توکن منقضی شده و امکان بازخوانی وجود ندارد' || (response as any).code === 'REFRESH_TOKEN_EXPIRED') {
+    } else if (response.message === 'توکن منقضی شده و امکان بازخوانی وجود ندارد' || response.code === 'REFRESH_TOKEN_EXPIRED') {
       // Refresh token failed, user needs to login again
       authService.clearTokens();
       authService.clearUser();
@@ -618,8 +786,10 @@ export function useAuth() {
   return {
     ...authState,
     login,
+    adminLogin,
     register,
     logout,
+    adminLogout,
     updateProfile,
     getProfile: authService.getProfile.bind(authService),
   };

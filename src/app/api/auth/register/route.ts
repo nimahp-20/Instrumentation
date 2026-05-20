@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { User } from '@/lib/models/User';
 import connectToDatabase from '@/lib/mongodb';
 import { generateTokenPair } from '@/lib/auth-utils';
-import { addSecurityHeaders, withSecurity } from '@/lib/security-middleware';
+import { addSecurityHeaders } from '@/lib/security-middleware';
 import { validateInput } from '@/lib/security';
 import { logger } from '@/lib/logger';
 import { getClientIP } from '@/lib/security';

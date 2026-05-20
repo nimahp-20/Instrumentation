@@ -2,22 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { User } from '@/lib/models/User';
 import connectToDatabase from '@/lib/mongodb';
 import { verifyAccessToken } from '@/lib/auth-utils';
+import { extractAccessToken } from '@/lib/request-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get access token from Authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const accessToken = extractAccessToken(request);
+    if (!accessToken) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'توکن دسترسی یافت نشد' 
-        },
+        { success: false, message: 'توکن دسترسی یافت نشد' },
         { status: 401 }
       );
     }
 
-    const accessToken = authHeader.substring(7);
     const payload = verifyAccessToken(accessToken);
     
     if (!payload) {
@@ -80,19 +76,14 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Get access token from Authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const accessToken = extractAccessToken(request);
+    if (!accessToken) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'توکن دسترسی یافت نشد' 
-        },
+        { success: false, message: 'توکن دسترسی یافت نشد' },
         { status: 401 }
       );
     }
 
-    const accessToken = authHeader.substring(7);
     const payload = verifyAccessToken(accessToken);
     
     if (!payload) {
@@ -108,6 +99,13 @@ export async function PUT(request: NextRequest) {
     // Parse request body
     const body = await request.json();
     const { firstName, lastName, email, phone } = body;
+
+    if ('role' in body || 'isActive' in body || 'tokenVersion' in body) {
+      return NextResponse.json(
+        { success: false, message: 'فیلدهای غیرمجاز در درخواست' },
+        { status: 400 }
+      );
+    }
 
     // Validation
     if (!firstName || !lastName || !email) {

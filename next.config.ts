@@ -47,7 +47,9 @@ export default withPWA({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
+  // Disabled: next-pwa 5.x breaks `next build` on Next.js 15 (webpack runtime error on "/").
+  // Set NEXT_ENABLE_PWA=1 to turn on after upgrading the PWA plugin.
+  disable: process.env.NEXT_ENABLE_PWA !== "1",
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,

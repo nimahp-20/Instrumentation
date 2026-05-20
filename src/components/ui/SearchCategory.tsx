@@ -3,13 +3,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCategorySearch } from '@/hooks/useApi';
-import { LoadingSpinner } from '@/components/ui';
+import { useCategorySearch, type Category } from '@/hooks/useApi';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface SearchCategoryProps {
   placeholder?: string;
   className?: string;
-  onCategorySelect?: (category: any) => void;
+  onCategorySelect?: (category: Category) => void;
   showSuggestions?: boolean;
   maxSuggestions?: number;
 }
@@ -84,7 +84,7 @@ export const SearchCategory: React.FC<SearchCategoryProps> = ({
     setSelectedIndex(-1);
   };
 
-  const handleCategorySelect = (category: any) => {
+  const handleCategorySelect = (category: Category) => {
     setQuery(category.name);
     setIsOpen(false);
     setSelectedIndex(-1);
@@ -122,7 +122,7 @@ export const SearchCategory: React.FC<SearchCategoryProps> = ({
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 placeholder:text-gray-500 text-gray-900"
+          className="w-full pr-10 pl-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] bg-white shadow-sm transition-all duration-200 placeholder:text-slate-500 text-slate-900"
         />
         
         {query && (

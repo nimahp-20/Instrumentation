@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Log } from '@/lib/models/Log';
+import { FilterQuery } from 'mongoose';
+import { Log, ILog } from '@/lib/models/Log';
 import connectToDatabase from '@/lib/mongodb';
 import { withApiLogging } from '@/lib/middleware/logging';
 import { addSecurityHeaders } from '@/lib/security-middleware';
+
+type DateAccumulator = {
+  $year?: string;
+  $month?: string;
+  $dayOfMonth?: string;
+  $hour?: string;
+  $week?: string;
+};
+
+type TimeGroupFormat = Record<string, DateAccumulator>;
 
 async function getLogAnalytics(request: NextRequest) {
   try {
@@ -15,7 +26,7 @@ async function getLogAnalytics(request: NextRequest) {
     const environment = searchParams.get('environment');
 
     // Build base query
-    const baseQuery: any = {};
+    const baseQuery: FilterQuery<ILog> = {};
     if (startDate || endDate) {
       baseQuery.timestamp = {};
       if (startDate) baseQuery.timestamp.$gte = new Date(startDate);
@@ -26,7 +37,7 @@ async function getLogAnalytics(request: NextRequest) {
     }
 
     // Define time grouping
-    let timeGroupFormat: any;
+    let timeGroupFormat: TimeGroupFormat;
     switch (groupBy) {
       case 'hour':
         timeGroupFormat = {

@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { User } from '@/lib/models/User';
 import connectToDatabase from '@/lib/mongodb';
 import { generateTokenPair } from '@/lib/auth-utils';
-import { addSecurityHeaders } from '@/lib/security-middleware';
+import { addSecurityHeaders, withRateLimit } from '@/lib/security-middleware';
 import { validateInput } from '@/lib/security';
+import { setRefreshTokenCookie } from '@/lib/auth-cookies';
 
-export async function POST(request: NextRequest) {
+async function loginHandler(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
@@ -120,15 +121,8 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Set HTTP-only cookie for refresh token
-    response.cookies.set('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 2 * 60, // 2 minutes for testing
-      path: '/'
-    });
-    
+    setRefreshTokenCookie(response, tokens.refreshToken);
+
     return addSecurityHeaders(response);
 
   } catch (error) {
@@ -144,3 +138,5 @@ export async function POST(request: NextRequest) {
     return addSecurityHeaders(response);
   }
 }
+
+export const POST = withRateLimit(loginHandler, 'auth');

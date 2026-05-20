@@ -97,7 +97,7 @@ const categoriesData = [
 ];
 
 // Persian and English product data
-const productsData = [
+const _productsData = [
   // Power Tools
   {
     name: "دریل برقی حرفه‌ای",

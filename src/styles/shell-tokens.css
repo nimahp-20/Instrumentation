@@ -1,0 +1,21 @@
+/* پالت مشترک پنل مدیریت و بخش‌های فروشگاه (مثلاً پروفایل) */
+.shell-tokens,
+.admin-shell,
+.profile-shell {
+  --admin-navy: #0a1628;
+  --admin-navy-2: #0f2137;
+  --admin-navy-border: #1e3a5f;
+  --admin-header: #4dabf7;
+  --admin-header-deep: #339af0;
+  --admin-primary: #228be6;
+  --admin-bg: #f1f4f8;
+  --admin-card: #ffffff;
+  --admin-text: #1e293b;
+  --admin-muted: #64748b;
+  --admin-success: #22c55e;
+  --admin-warning: #f59e0b;
+  --admin-danger: #ef4444;
+  --admin-purple: #a855f7;
+  --admin-radius: 12px;
+  --admin-shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 4px 12px rgb(15 23 42 / 0.04);
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Log } from '@/lib/models/Log';
+import { FilterQuery } from 'mongoose';
+import { Log, ILog } from '@/lib/models/Log';
 import connectToDatabase from '@/lib/mongodb';
 import { withApiLogging } from '@/lib/middleware/logging';
 import { addSecurityHeaders } from '@/lib/security-middleware';
@@ -42,7 +43,7 @@ async function getLogs(request: NextRequest) {
     };
 
     // Build query
-    const query: any = {};
+    const query: FilterQuery<ILog> = {};
 
     if (params.level) {
       query.level = params.level;
@@ -134,7 +135,7 @@ async function getLogStats(request: NextRequest) {
     const environment = searchParams.get('environment');
 
     // Build base query
-    const baseQuery: any = {};
+    const baseQuery: FilterQuery<ILog> = {};
     if (startDate || endDate) {
       baseQuery.timestamp = {};
       if (startDate) baseQuery.timestamp.$gte = new Date(startDate);
@@ -230,7 +231,7 @@ async function deleteLogs(request: NextRequest) {
     }
 
     // Build deletion query
-    const deleteQuery: any = {
+    const deleteQuery: FilterQuery<ILog> = {
       timestamp: { $lt: new Date(olderThan) }
     };
 

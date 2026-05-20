@@ -20,8 +20,6 @@ export function rateLimit(options: {
   return (req: Request): { allowed: boolean; remaining: number; resetTime: number } => {
     const key = keyGenerator ? keyGenerator(req) : getClientIP(req);
     const now = Date.now();
-    const windowStart = now - windowMs;
-
     // Clean up expired entries
     for (const [k, v] of rateLimitStore.entries()) {
       if (v.resetTime < now) {
@@ -220,7 +218,7 @@ export function validatePassword(password: string): { valid: boolean; error?: st
 
   // Calculate password strength
   let score = 0;
-  let missingRequirements: string[] = [];
+  const missingRequirements: string[] = [];
   
   // Length bonus
   if (password.length >= 12) score += 2;

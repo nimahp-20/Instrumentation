@@ -27,7 +27,7 @@ export const Container: React.FC<ContainerProps> = ({
 
   const paddingClasses = {
     none: '',
-    sm: 'px-2',
+    sm: 'px-4 sm:px-6',
     md: 'px-4 sm:px-6 lg:px-8',
     lg: 'px-6 sm:px-8 lg:px-12',
   };
@@ -55,16 +55,16 @@ export const Section: React.FC<SectionProps> = ({
 }) => {
   const paddingClasses = {
     none: '',
-    sm: 'py-8',
-    md: 'py-12',
-    lg: 'py-16',
-    xl: 'py-20',
+    sm: 'py-10 sm:py-12',
+    md: 'py-12 sm:py-16',
+    lg: 'py-16 sm:py-20',
+    xl: 'py-20 sm:py-24',
   };
 
   const backgroundClasses = {
     white: 'bg-white',
-    gray: 'bg-gray-50',
-    blue: 'bg-blue-600',
+    gray: 'bg-slate-50',
+    blue: 'bg-[var(--primary)]',
     transparent: 'bg-transparent',
   };
 
@@ -101,13 +101,15 @@ export const Grid: React.FC<GridProps> = ({
   };
 
   const gapClasses = {
-    sm: 'gap-4',
-    md: 'gap-6',
-    lg: 'gap-8',
-    xl: 'gap-12',
+    sm: 'gap-4 sm:gap-5',
+    md: 'gap-5 sm:gap-6',
+    lg: 'gap-6 sm:gap-8',
+    xl: 'gap-8 sm:gap-10',
   };
 
-  const responsiveClasses = responsive ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : '';
+  const responsiveClasses = responsive
+    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
+    : '';
 
   return (
     <div className={`grid ${colsClasses[cols]} ${gapClasses[gap]} ${responsiveClasses} ${className}`}>
@@ -161,10 +163,10 @@ export const Flex: React.FC<FlexProps> = ({
   };
 
   const gapClasses = {
-    sm: 'gap-2',
-    md: 'gap-4',
-    lg: 'gap-6',
-    xl: 'gap-8',
+    sm: 'gap-3',
+    md: 'gap-4 sm:gap-5',
+    lg: 'gap-5 sm:gap-6',
+    xl: 'gap-6 sm:gap-8',
   };
 
   return (

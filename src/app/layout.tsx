@@ -1,8 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import { ConditionalSiteChrome } from '@/components/layout/ConditionalSiteChrome';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
@@ -19,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 // Persian font configuration
-const iranSans = {
+const _iranSans = {
   variable: "--font-iran-sans",
   family: "IRANSansX",
 };
@@ -29,13 +28,6 @@ export const metadata: Metadata = {
   description: "فروشگاه آنلاین ابزارهای حرفه‌ای. ابزارهای برقی، دستی، تجهیزات ایمنی و بیشتر. بهترین کیفیت با قیمت مناسب.",
   keywords: ["ابزار", "تجهیزات", "ابزار برقی", "ابزار دستی", "تجهیزات ایمنی", "ابزار حرفه‌ای"],
   manifest: "/manifest.json",
-  themeColor: "#059669",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -66,6 +58,14 @@ export const metadata: Metadata = {
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#059669",
 };
 
 export default function RootLayout({
@@ -105,9 +105,7 @@ export default function RootLayout({
                  <CartProvider>
                    <WishlistProvider>
                      <FetchInterceptorClient />
-                     <Header />
-                     <main className="flex-grow">{children}</main>
-                     <Footer />
+                     <ConditionalSiteChrome>{children}</ConditionalSiteChrome>
                    </WishlistProvider>
                  </CartProvider>
                </AuthProvider>

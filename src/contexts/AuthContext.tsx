@@ -1,17 +1,29 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuth, User, AuthTokens, LoginCredentials, RegisterData } from '@/hooks/useAuth';
+import {
+  useAuth,
+  User,
+  AuthTokens,
+  LoginCredentials,
+  RegisterData,
+  ApiResponse,
+  AdminLoginPayload,
+} from '@/hooks/useAuth';
+
+type AuthPayload = { user: User; tokens: AuthTokens };
 
 interface AuthContextType {
   user: User | null;
   tokens: AuthTokens | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<any>;
-  register: (data: RegisterData) => Promise<any>;
+  login: (credentials: LoginCredentials) => Promise<ApiResponse<AuthPayload>>;
+  adminLogin: (credentials: LoginCredentials) => Promise<ApiResponse<AdminLoginPayload>>;
+  register: (data: RegisterData) => Promise<ApiResponse<AuthPayload>>;
   logout: (logoutAll?: boolean) => Promise<void>;
-  updateProfile: () => Promise<any>;
+  adminLogout: () => Promise<void>;
+  updateProfile: () => Promise<ApiResponse<{ user: User }>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

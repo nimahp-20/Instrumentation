@@ -41,14 +41,14 @@ export default function ShippingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen page-surface py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             اطلاعات ارسال
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-700 max-w-3xl mx-auto">
             تمام اطلاعات مورد نیاز درباره روش‌ها، هزینه‌ها و زمان ارسال سفارشات
           </p>
         </div>
@@ -74,15 +74,15 @@ export default function ShippingPage() {
                     <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-gray-600">زمان: {method.duration}</span>
+                    <span className="text-slate-700">زمان: {method.duration}</span>
                   </div>
                   <div className="flex items-center">
                     <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                     </svg>
-                    <span className="text-gray-600">{method.cost}</span>
+                    <span className="text-slate-700">{method.cost}</span>
                   </div>
-                  <p className="text-gray-600 text-sm">{method.description}</p>
+                  <p className="text-slate-700 text-sm">{method.description}</p>
                 </div>
               </div>
             ))}
@@ -100,11 +100,11 @@ export default function ShippingPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">{area.city}</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">زمان ارسال:</span>
+                    <span className="text-slate-700">زمان ارسال:</span>
                     <span className="font-medium">{area.duration}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">ارسال رایگان:</span>
+                    <span className="text-slate-700">ارسال رایگان:</span>
                     <span className="font-medium text-green-600">{area.freeShipping}</span>
                   </div>
                 </div>
@@ -124,7 +124,7 @@ export default function ShippingPage() {
                 <span className="text-2xl font-bold text-white">1</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">ثبت سفارش</h3>
-              <p className="text-gray-600 text-sm">سفارش شما ثبت و پردازش می‌شود</p>
+              <p className="text-slate-700 text-sm">سفارش شما ثبت و پردازش می‌شود</p>
             </div>
 
             <div className="text-center">
@@ -132,7 +132,7 @@ export default function ShippingPage() {
                 <span className="text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">آماده‌سازی</h3>
-              <p className="text-gray-600 text-sm">محصولات بسته‌بندی و آماده ارسال می‌شوند</p>
+              <p className="text-slate-700 text-sm">محصولات بسته‌بندی و آماده ارسال می‌شوند</p>
             </div>
 
             <div className="text-center">
@@ -140,7 +140,7 @@ export default function ShippingPage() {
                 <span className="text-2xl font-bold text-white">3</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">ارسال</h3>
-              <p className="text-gray-600 text-sm">سفارش با روش انتخابی ارسال می‌شود</p>
+              <p className="text-slate-700 text-sm">سفارش با روش انتخابی ارسال می‌شود</p>
             </div>
 
             <div className="text-center">
@@ -148,7 +148,7 @@ export default function ShippingPage() {
                 <span className="text-2xl font-bold text-white">4</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">تحویل</h3>
-              <p className="text-gray-600 text-sm">سفارش به آدرس شما تحویل داده می‌شود</p>
+              <p className="text-slate-700 text-sm">سفارش به آدرس شما تحویل داده می‌شود</p>
             </div>
           </div>
         </div>

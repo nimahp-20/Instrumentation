@@ -78,6 +78,16 @@ tsconfig.tsbuildinfo
 # production
 /build
 
+# Admin-uploaded category images (keep directory via .gitkeep)
+/public/uploads/categories/*
+!/public/uploads/categories/.gitkeep
+
+/public/uploads/products/*
+!/public/uploads/products/.gitkeep
+
+/public/uploads/products/*
+!/public/uploads/products/.gitkeep
+
 # misc
 .DS_Store
 *.pem

@@ -1,18 +1,39 @@
 // Global fetch interceptor for automatic 401 handling
 
+import { isAdminSession, clearAdminSessionFlag, getLoginRedirectPath } from '@/lib/auth-session';
+
+interface RefreshTokens {
+  accessToken?: string;
+  expiresIn: number;
+}
+
+export interface FetchInterceptorInstance {
+  interceptFetch(url: string, options?: RequestInit): Promise<Response>;
+}
+
+type FetchInterceptorWindow = Window & {
+  __fetchInterceptorLoaded?: boolean;
+  __fetchInterceptor?: FetchInterceptorInstance;
+};
+
+function getInterceptorWindow(): FetchInterceptorWindow {
+  return window as FetchInterceptorWindow;
+}
+
 // Only run in browser environment
 if (typeof window !== 'undefined') {
   // Prevent multiple interceptor registrations
-  if ((window as any).__fetchInterceptorLoaded) {
+  const win = getInterceptorWindow();
+  if (win.__fetchInterceptorLoaded) {
     console.log('🔧 Fetch interceptor already loaded, skipping...');
   } else {
     // Store original fetch before overriding
     const originalFetch = window.fetch;
 
-  class FetchInterceptor {
+  class FetchInterceptor implements FetchInterceptorInstance {
     private static instance: FetchInterceptor;
     private isRefreshing = false;
-    private refreshPromise: Promise<any> | null = null;
+    private refreshPromise: Promise<RefreshTokens | null> | null = null;
 
     static getInstance(): FetchInterceptor {
       if (!FetchInterceptor.instance) {
@@ -21,7 +42,7 @@ if (typeof window !== 'undefined') {
       return FetchInterceptor.instance;
     }
 
-    private async refreshToken(): Promise<any> {
+    private async refreshToken(): Promise<RefreshTokens | null> {
       console.log('🔄 Global interceptor: Calling refresh token...');
       
       const response = await originalFetch('/api/auth/refresh', {
@@ -32,7 +53,10 @@ if (typeof window !== 'undefined') {
         credentials: 'include',
       });
 
-      const data = await response.json();
+      const data = await response.json() as {
+        success?: boolean;
+        data?: { tokens: RefreshTokens };
+      };
       console.log('🔄 Global interceptor: Refresh response:', data);
 
       // Handle 403 - refresh token expired/invalid
@@ -42,28 +66,31 @@ if (typeof window !== 'undefined') {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tokenExpiresIn');
         localStorage.removeItem('user');
-        
-        // Dispatch event to notify app
+        clearAdminSessionFlag();
+
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('authExpired'));
-          // Save current URL to redirect back after login
           const currentPath = window.location.pathname + window.location.search;
-          if (currentPath !== '/login' && currentPath !== '/register') {
+          const loginPath = getLoginRedirectPath();
+          if (
+            currentPath !== '/login' &&
+            currentPath !== '/register' &&
+            currentPath !== '/admin/login'
+          ) {
             sessionStorage.setItem('redirectAfterLogin', currentPath);
           }
-          // Redirect to login page
-          window.location.href = '/login';
+          window.location.href = loginPath;
         }
         return null;
       }
 
       if (data.success && data.data) {
-        // Update tokens in localStorage using the same format as useAuth hook
         const tokens = data.data.tokens;
-        localStorage.setItem('accessToken', tokens.accessToken);
         localStorage.setItem('tokenExpiresIn', tokens.expiresIn.toString());
-        // Note: refreshToken is not stored in localStorage, it's in HTTP-only cookie
-        console.log('✅ Global interceptor: Tokens updated in localStorage');
+        if (tokens.accessToken) {
+          localStorage.setItem('accessToken', tokens.accessToken);
+        }
+        console.log('✅ Global interceptor: Session updated');
         
         // Dispatch a custom event to notify other parts of the app
         if (typeof window !== 'undefined') {
@@ -79,6 +106,7 @@ if (typeof window !== 'undefined') {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tokenExpiresIn');
         localStorage.removeItem('user');
+        clearAdminSessionFlag();
         return null;
       }
     }
@@ -88,7 +116,6 @@ if (typeof window !== 'undefined') {
       
       // Get current tokens using the same format as useAuth hook
       const accessToken = localStorage.getItem('accessToken');
-      const expiresIn = localStorage.getItem('tokenExpiresIn');
 
       // Add authorization header if we have tokens
       if (accessToken) {
@@ -120,25 +147,25 @@ if (typeof window !== 'undefined') {
           this.refreshPromise = null;
         }
 
-        // Get updated tokens using the same format as useAuth hook
         const newAccessToken = localStorage.getItem('accessToken');
+        const adminCookieSession = isAdminSession();
 
-        if (newAccessToken) {
-          console.log('✅ Global interceptor: Retrying request with new token...');
-          // Retry the original request with new token
-          const retryOptions = {
-            ...options,
-            headers: {
-              ...options.headers,
-              'Authorization': `Bearer ${newAccessToken}`,
-            },
-            credentials: 'include' as RequestCredentials,
+        if (newAccessToken || adminCookieSession) {
+          const retryHeaders: Record<string, string> = {
+            ...(options.headers as Record<string, string>),
           };
-          return await originalFetch(url, retryOptions);
-        } else {
-          console.log('❌ Global interceptor: Refresh failed, returning 401');
-          return response;
+          if (newAccessToken) {
+            retryHeaders.Authorization = `Bearer ${newAccessToken}`;
+          }
+          return await originalFetch(url, {
+            ...options,
+            headers: retryHeaders,
+            credentials: 'include',
+          });
         }
+
+        console.log('❌ Global interceptor: Refresh failed, returning 401');
+        return response;
       }
 
       return response;
@@ -162,13 +189,16 @@ if (typeof window !== 'undefined') {
   };
 
     // Mark as loaded to prevent multiple registrations
-    (window as any).__fetchInterceptorLoaded = true;
+    win.__fetchInterceptorLoaded = true;
     console.log('🔧 Global fetch interceptor loaded successfully');
     
     // Export the interceptor
-    (window as any).__fetchInterceptor = fetchInterceptor;
+    win.__fetchInterceptor = fetchInterceptor;
   }
 }
 
 // Export the interceptor (will be undefined if not loaded)
-export default (typeof window !== 'undefined' ? (window as any).__fetchInterceptor : null);
+const defaultExport: FetchInterceptorInstance | null =
+  typeof window !== 'undefined' ? (getInterceptorWindow().__fetchInterceptor ?? null) : null;
+
+export default defaultExport;

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Input } from '@/components/ui';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui';
 
 interface NewsletterSectionProps {
   title: string;
@@ -67,7 +68,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
   };
 
   return (
-    <section className={`py-20 bg-gray-900 ${className}`}>
+    <section className={`section-dark py-20 bg-gray-900 ${className}`}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Classic Header */}
         <div className="text-center mb-16">
@@ -81,14 +82,14 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
             {title}
           </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
             {description}
           </p>
         </div>
 
         {/* Classic Form */}
         <div className="max-w-lg mx-auto">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="stack-md">
             <div className="relative">
               <Input
                 type="email"
@@ -124,7 +125,8 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
             
             <Button 
               type="submit"
-              className="w-full px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+              fullWidth
+              size="lg"
               loading={isLoading}
             >
               {buttonText}
@@ -132,7 +134,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
           </form>
 
           {/* Classic Trust Indicators */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             <div className="text-center">
               <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +142,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
                 </svg>
               </div>
               <h4 className="text-white font-semibold mb-2">بدون اسپم</h4>
-              <p className="text-gray-400 text-sm">فقط محتوای مفید و مرتبط</p>
+              <p className="text-slate-300 text-sm">فقط محتوای مفید و مرتبط</p>
             </div>
             
             <div className="text-center">
@@ -150,7 +152,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
                 </svg>
               </div>
               <h4 className="text-white font-semibold mb-2">تخفیف‌های ویژه</h4>
-              <p className="text-gray-400 text-sm">پیشنهادات انحصاری برای اعضا</p>
+              <p className="text-slate-300 text-sm">پیشنهادات انحصاری برای اعضا</p>
             </div>
             
             <div className="text-center">
@@ -160,7 +162,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
                 </svg>
               </div>
               <h4 className="text-white font-semibold mb-2">اولویت اطلاع‌رسانی</h4>
-              <p className="text-gray-400 text-sm">اولین کسی باشید که از محصولات جدید مطلع می‌شوید</p>
+              <p className="text-slate-300 text-sm">اولین کسی باشید که از محصولات جدید مطلع می‌شوید</p>
             </div>
           </div>
         </div>

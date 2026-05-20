@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   ProfileHeader, 
@@ -15,7 +14,6 @@ import {
 } from '@/components/profile';
 
 export default function ProfilePage() {
-  const router = useRouter();
   const { user, isAuthenticated, isLoading, updateProfile, logout } = useAuth();
   const hasLoadedProfile = useRef(false);
   const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -111,7 +109,7 @@ export default function ProfilePage() {
       } else {
         setEditError(data.message || 'خطا در به‌روزرسانی اطلاعات');
       }
-    } catch (error) {
+    } catch (_error) {
       setEditError('خطای شبکه - لطفاً دوباره تلاش کنید');
     } finally {
       setIsSubmitting(false);
@@ -170,17 +168,20 @@ export default function ProfilePage() {
 
   if (isLoading || !isAuthenticated) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">در حال بارگذاری پروفایل...</p>
+      <div className="profile-shell min-h-[50vh] flex items-center justify-center bg-[var(--admin-bg)] text-[var(--admin-text)]">
+        <div className="text-center px-4">
+          <div
+            className="w-12 h-12 border-[3px] rounded-full animate-spin mx-auto mb-4"
+            style={{ borderColor: 'rgb(224 242 254)', borderTopColor: 'var(--admin-primary)' }}
+          />
+          <p className="text-[var(--admin-muted)] font-medium">در حال بارگذاری پروفایل...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-6 sm:py-8 lg:py-12">
+    <div className="profile-shell min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)] py-6 sm:py-8 lg:py-12">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
         {/* Header Section */}
         <ProfileHeader user={user} />

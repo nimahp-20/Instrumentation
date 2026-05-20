@@ -73,7 +73,10 @@ export async function GET(request: NextRequest) {
 }
 
 // Helper function to determine match type for highlighting
-function getMatchType(category: any, query: string): string {
+function getMatchType(
+  category: { name: string; nameEn: string; description: string; slug: string },
+  query: string
+): string {
   const queryLower = query.toLowerCase();
   
   if (category.name.toLowerCase().includes(queryLower)) {

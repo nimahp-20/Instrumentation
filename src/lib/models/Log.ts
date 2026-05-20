@@ -14,7 +14,7 @@ export interface ILog extends Document {
   url?: string;
   statusCode?: number;
   responseTime?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   stack?: string;
   tags?: string[];
   severity: number;
@@ -127,7 +127,7 @@ const LogSchema: Schema = new Schema({
 }, {
   timestamps: true,
   toJSON: {
-    transform: function(doc: any, ret: any) {
+    transform: function(_doc, ret: Record<string, unknown>) {
       delete ret.__v;
       return ret;
     }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth-utils';
+import { verifyAccessToken } from '@/lib/auth-utils';
+import { extractAccessToken, extractAdminAccessToken } from '@/lib/request-auth';
 import { User } from '@/lib/models/User';
 import connectToDatabase from '@/lib/mongodb';
 
@@ -16,15 +17,15 @@ export interface AuthenticatedRequest extends NextRequest {
  */
 export function withAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
-  options: { requireAuth?: boolean; roles?: string[] } = {}
+  options: { requireAuth?: boolean; roles?: string[]; adminOnly?: boolean } = {}
 ) {
   return async (req: NextRequest) => {
-    const { requireAuth = true, roles = [] } = options;
+    const { requireAuth = true, roles = [], adminOnly = false } = options;
 
     try {
-      // Extract token from Authorization header
-      const authHeader = req.headers.get('authorization');
-      const token = extractTokenFromHeader(authHeader || undefined);
+      const token = adminOnly
+        ? extractAdminAccessToken(req)
+        : extractAccessToken(req);
 
       if (!token) {
         if (requireAuth) {
@@ -70,7 +71,19 @@ export function withAuth(
         );
       }
 
-      // Check role permissions
+      // Reject tokens whose embedded role no longer matches DB (e.g. demoted admin)
+      if (payload.role && payload.role !== user.role) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'نشست منقضی شده — لطفاً دوباره وارد شوید',
+            code: 'ROLE_CHANGED',
+          },
+          { status: 401 }
+        );
+      }
+
+      // Check role permissions (always from database, never from client)
       if (roles.length > 0 && !roles.includes(user.role)) {
         return NextResponse.json(
           { 
@@ -121,7 +134,7 @@ export function withOptionalAuth(
 export function withAdminAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ) {
-  return withAuth(handler, { roles: ['admin'] });
+  return withAuth(handler, { roles: ['admin'], adminOnly: true });
 }
 
 /**

@@ -72,7 +72,7 @@ export default function CategoryPage() {
         if (productsData.success) {
           setProducts(productsData.products || productsData.data || []);
         }
-      } catch (err) {
+      } catch (_err) {
         setError('خطا در بارگذاری اطلاعات');
       } finally {
         setLoading(false);
@@ -111,7 +111,7 @@ export default function CategoryPage() {
 
   if (error || !category) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen page-surface flex items-center justify-center">
         <div className="bg-white/95 backdrop-blur-sm px-8 py-6 rounded-3xl shadow-2xl border border-white/30 text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">خطا در بارگذاری</h2>
           <p className="text-gray-800 mb-4">{error || 'دسته‌بندی یافت نشد'}</p>
@@ -131,11 +131,11 @@ export default function CategoryPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center space-x-2 space-x-reverse text-sm">
-            <Link href="/" className="text-gray-500 hover:text-gray-700">خانه</Link>
+            <Link href="/" className="text-slate-600 hover:text-gray-700">خانه</Link>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <Link href="/products" className="text-gray-500 hover:text-gray-700">محصولات</Link>
+            <Link href="/products" className="text-slate-600 hover:text-gray-700">محصولات</Link>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -189,7 +189,7 @@ export default function CategoryPage() {
               {products.length} محصول یافت شد
             </h2>
             <div className="flex items-center space-x-4 space-x-reverse">
-              <label className="text-sm text-gray-600">مرتب‌سازی:</label>
+              <label className="text-sm text-slate-700">مرتب‌سازی:</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -206,7 +206,7 @@ export default function CategoryPage() {
                 title={sortOrder === 'asc' ? 'صعودی' : 'نزولی'}
               >
                 <svg
-                  className={`w-5 h-5 text-gray-600 transition-transform ${
+                  className={`w-5 h-5 text-slate-700 transition-transform ${
                     sortOrder === 'desc' ? 'rotate-180' : ''
                   }`}
                   fill="none"
@@ -248,7 +248,7 @@ export default function CategoryPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">محصولی یافت نشد</h3>
-            <p className="text-gray-600 mb-6">در حال حاضر محصولی در این دسته‌بندی موجود نیست.</p>
+            <p className="text-slate-700 mb-6">در حال حاضر محصولی در این دسته‌بندی موجود نیست.</p>
             <Link href="/products">
               <Button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors">
                 مشاهده همه محصولات

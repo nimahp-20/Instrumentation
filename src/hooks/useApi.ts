@@ -80,6 +80,14 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+interface ProductsListResponse {
+  success: boolean;
+  products?: Product[];
+  data?: Product[];
+  pagination?: ApiResponse<Product[]>['pagination'];
+  error?: string;
+}
+
 // Base URL for API calls (can be empty for same-origin)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
@@ -258,7 +266,7 @@ export function useProducts(options?: {
         if (options?.search) params.append('search', options.search);
         
         const response = await fetch(`${API_BASE_URL}/api/products?${params}`);
-        const result: any = await response.json();
+        const result: ProductsListResponse = await response.json();
         
         if (result.success) {
           // API returns 'products' not 'data'

@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, LoadingSpinner, SearchCategory } from '@/components/ui';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SearchCategory } from '@/components/ui/SearchCategory';
+import type { Category as ApiCategory } from '@/hooks/useApi';
 
 interface Category {
   name: string;
@@ -42,13 +44,13 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
     }
   }, [searchQuery, categories]);
 
-  const handleCategorySelect = (category: any) => {
+  const handleCategorySelect = (category: ApiCategory) => {
     // Navigate to category page
     window.location.href = `/categories/${category.slug}`;
   };
 
   return (
-    <section id="categories" className={`py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 ${className}`}>
+    <section id="categories" className={`page-section bg-slate-50 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center mb-10 sm:mb-16">
@@ -57,10 +59,10 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-4 sm:mb-6 px-4">
+          <h2 className="section-title mb-4 sm:mb-6 px-4">
             {title}
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-4">
+          <p className="section-subtitle mb-6 sm:mb-8 px-4">
             {description}
           </p>
           
@@ -155,10 +157,10 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
                   
                   {/* Action Button */}
                   <div className="flex items-center text-blue-600 font-semibold group-hover:text-blue-700 transition-colors duration-300">
-                    <span className="text-xs sm:text-sm">مشاهده محصولات</span>
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
+                    <span className="text-xs sm:text-sm">مشاهده محصولات</span>
                   </div>
                 </div>
                 

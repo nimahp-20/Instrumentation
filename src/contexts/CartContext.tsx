@@ -123,6 +123,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         totalItems: action.payload.reduce((sum, item) => sum + item.quantity, 0),
         totalPrice: action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         totalOriginalPrice: action.payload.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0),
+        discount: 0,
       };
     }
     

@@ -82,87 +82,579 @@
        url('/fonts/IranSansXPro/IRANSansXFaNum-Black.woff') format('woff');
 }
 
-@font-face {
-  font-family: 'IRANSansX';
-  font-style: normal;
-  font-weight: 950;
-  font-display: swap;
-  src: url('/fonts/IranSansXPro/IRANSansXFaNum-ExtraBlack.woff2') format('woff2'),
-       url('/fonts/IranSansXPro/IRANSansXFaNum-ExtraBlack.woff') format('woff');
-}
-
-@font-face {
-  font-family: 'IRANSansX';
-  font-style: normal;
-  font-weight: 1000;
-  font-display: swap;
-  src: url('/fonts/IranSansXPro/IRANSansXFaNum-Heavy.woff2') format('woff2'),
-       url('/fonts/IranSansXPro/IRANSansXFaNum-Heavy.woff') format('woff');
-}
-
+/* ─── Design tokens ─── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  
-  /* Persian Font Variables */
   --font-iran-sans: 'IRANSansX', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-sans: var(--font-iran-sans);
+
+  /* Surfaces */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* Brand – emerald (matches PWA theme) */
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-light: #d1fae5;
+  --primary-muted: #ecfdf5;
+
+  /* Text hierarchy – WCAG-friendly on light backgrounds (≥4.5:1 on white) */
+  --text-primary: #0f172a;   /* slate-900 */
+  --text-secondary: #334155; /* slate-700 */
+  --text-muted: #475569;     /* slate-600 */
+  --text-inverse: #ffffff;
+  --text-on-dark: #f8fafc;    /* slate-50 */
+  --text-on-dark-muted: #e2e8f0; /* slate-200 */
+
+  /* Semantic */
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0284c7;
+
+  /* Spacing rhythm */
+  --space-section-y: clamp(2.5rem, 5vw, 4rem);
+  --space-block: clamp(1rem, 2.5vw, 1.5rem);
+  --space-element: 0.75rem;
+  --space-tight: 0.5rem;
+
+  /* Touch targets */
+  --min-touch: 2.75rem;
+
+  /* Radius */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-content: var(--text-primary);
+  --color-content-secondary: var(--text-secondary);
+  --color-content-muted: var(--text-muted);
+  --color-on-dark: var(--text-on-dark);
+  --color-on-dark-muted: var(--text-on-dark-muted);
   --font-sans: var(--font-iran-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: var(--text-primary);
   font-family: var(--font-iran-sans);
+  font-size: 1rem;
+  line-height: 1.7;
   font-feature-settings: "liga" 1, "kern" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Persian Typography Enhancements */
 .font-iran-sans {
   font-family: var(--font-iran-sans);
 }
 
-/* Ensure proper Persian text rendering */
-* {
-  font-family: var(--font-iran-sans);
-}
-
-/* Persian-specific text styles */
-.persian-text {
-  font-family: var(--font-iran-sans);
-  direction: rtl;
-  text-align: right;
-}
-
-/* Persian headings */
+/* Typography – inherit color from parent (fixes dark sections like Hero) */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-iran-sans);
   font-weight: 700;
+  color: inherit;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
-/* Persian paragraphs */
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h3 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
+
 p {
   font-family: var(--font-iran-sans);
-  line-height: 1.6;
+  color: inherit;
+  line-height: 1.75;
 }
 
-/* Smooth scrolling for in-page anchors */
-html {
-  scroll-behavior: smooth;
+/* Default readable text on light page areas only */
+.page-surface p {
+  color: var(--text-secondary);
+}
+
+.page-surface a:not([class*="text-"]):not([class*="bg-"]) {
+  color: var(--primary);
+}
+
+.page-surface a:not([class*="text-"]):not([class*="bg-"]):hover {
+  color: var(--primary-hover);
+}
+
+/* Dark bands (hero, promos) – force light text */
+.section-dark,
+.section-dark h1,
+.section-dark h2,
+.section-dark h3,
+.section-dark h4,
+.section-dark p,
+.section-dark li,
+.section-dark span {
+  color: inherit;
+}
+
+.section-dark {
+  --text-on-dark: #f8fafc;
+  --text-on-dark-muted: #e2e8f0;
+  color: var(--text-on-dark);
+}
+
+.section-dark p:not([class*="text-"]) {
+  color: var(--text-on-dark-muted);
+}
+
+a {
+  transition: color 0.15s ease;
+}
+
+/* ─── Layout utilities ─── */
+.page-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.page-section {
+  padding-block: var(--space-section-y);
+}
+
+.page-surface {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  padding-inline: 0.5rem;
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.35;
+}
+
+.section-subtitle {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  color: var(--text-secondary);
+  max-width: 42rem;
+  margin-inline: auto;
+  line-height: 1.75;
+}
+
+/* Vertical rhythm stacks */
+.stack-sm > * + * { margin-top: 0.5rem; }
+.stack-md > * + * { margin-top: 1rem; }
+.stack-lg > * + * { margin-top: 1.5rem; }
+.stack-xl > * + * { margin-top: 2rem; }
+
+/* Button groups – prevent cramped controls */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-group-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .btn-group-col-sm-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+/* Card shell */
+.card-base {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px 0 rgb(15 23 42 / 0.06);
+}
+
+.card-base:hover {
+  box-shadow: 0 4px 12px -2px rgb(15 23 42 / 0.1);
+}
+
+/* Form field spacing */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+/* Breadcrumb – wraps on small screens */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.breadcrumb a {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.breadcrumb a:hover {
+  color: var(--text-primary);
+}
+
+.breadcrumb-sep {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Readable text utilities (plain CSS – always applies) */
+.text-body { color: var(--text-secondary); line-height: 1.75; }
+.text-caption { color: var(--text-muted); font-size: 0.875rem; line-height: 1.5; }
+.text-heading { color: var(--text-primary); font-weight: 700; }
+.text-content { color: var(--text-primary); }
+.text-content-secondary { color: var(--text-secondary); }
+.text-content-muted { color: var(--text-muted); }
+.text-on-dark { color: var(--text-on-dark); }
+.text-on-dark-muted { color: var(--text-on-dark-muted); }
+
+/* Surface helpers */
+.bg-surface { background-color: var(--surface); }
+.bg-surface-muted { background-color: var(--surface-muted); }
+.border-default { border-color: var(--border); }
+
+/* Light pages: lift washed-out Tailwind grays */
+.page-surface :where(.text-gray-400, .text-gray-500) {
+  color: var(--text-muted) !important;
+}
+.page-surface :where(.text-gray-600) {
+  color: var(--text-secondary) !important;
+}
+.page-surface :where(.text-gray-700, .text-gray-800, .text-gray-900) {
+  color: var(--text-primary) !important;
+}
+
+.card-base :where(.text-gray-400, .text-gray-500) {
+  color: var(--text-muted) !important;
+}
+.card-base :where(.text-gray-600) {
+  color: var(--text-secondary) !important;
+}
+
+/* Inputs – readable typed text & placeholders */
+input,
+select,
+textarea {
+  color: var(--text-primary);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Gradient titles: fallback on light sections only */
+@supports not (background-clip: text) {
+  .page-surface .bg-clip-text.text-transparent {
+    background: none !important;
+    -webkit-text-fill-color: unset;
+    color: var(--text-primary) !important;
+  }
+  .section-dark .bg-clip-text.text-transparent {
+    background: none !important;
+    -webkit-text-fill-color: unset;
+    color: var(--text-on-dark) !important;
+  }
+}
+
+/* Product listing – 3 per row on desktop */
+.products-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 640px) {
+  .products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem;
+  }
+}
+@media (min-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+/* Focus ring – accessible */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Site header */
+.header-search-input {
+  width: 100%;
+  padding: 0.625rem 2.5rem 0.625rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.header-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.header-search-input:hover {
+  border-color: var(--border-strong);
+}
+
+.header-search-input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.header-nav-link {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.header-nav-link:hover {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary-muted) 55%, transparent);
+}
+
+.header-nav-link--active {
+  color: var(--primary-hover);
+  background: var(--primary-muted);
+  font-weight: 600;
+}
+
+.header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .header-icon-btn {
+    padding: 0.5rem;
+  }
+}
+
+.header-icon-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-muted);
+}
+
+/* فقط موبایل/تبلت – اولویت بالاتر از display در .header-icon-btn */
+@media (min-width: 1024px) {
+  .header-mobile-only {
+    display: none !important;
+  }
+}
+
+.header-search-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  z-index: 40;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 25px -5px rgb(15 23 42 / 0.12);
+}
+
+.header-search-hit {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  transition: background 0.15s ease;
+}
+
+.header-search-hit:hover {
+  background: var(--surface-muted);
+}
+
+/* Mobile menu drawer (portaled to body) */
+.mobile-menu-root {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+}
+
+@media (min-width: 1024px) {
+  .mobile-menu-root {
+    display: none !important;
+  }
+}
+
+.mobile-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.mobile-menu-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: min(20rem, 88vw);
+  max-width: 100%;
+  height: 100dvh;
+  height: 100vh;
+  background: var(--surface);
+  border-inline-end: 1px solid var(--border);
+  box-shadow: -8px 0 32px rgb(15 23 42 / 0.18);
+  overflow: hidden;
+  animation: mobile-menu-slide-in 0.22s ease-out;
+}
+
+@keyframes mobile-menu-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-drawer {
+    animation: none;
+  }
+}
+
+.mobile-menu-drawer__head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(to left, var(--surface-muted), var(--surface));
+}
+
+.mobile-menu-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu-drawer__nav {
+  flex: 1;
+  padding-block: 0.5rem;
+}
+
+/* Auth modal – always centered on viewport (portaled to body) */
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.auth-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgb(15 23 42 / 0.72);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.auth-modal-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100dvh;
+  min-height: 100vh;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  pointer-events: none;
+}
+
+.auth-modal-panel {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 32rem;
+  max-height: min(90dvh, 720px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.35);
 }
