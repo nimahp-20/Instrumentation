@@ -1,63 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
-import mongoose from 'mongoose';
-
-// Define the schema inline to avoid import issues
-const NewsletterUserSchema = new mongoose.Schema({
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true,
-    lowercase: true,
-    trim: true,
-    index: true
-  },
-  firstName: { 
-    type: String, 
-    trim: true,
-    maxlength: 50
-  },
-  lastName: { 
-    type: String, 
-    trim: true,
-    maxlength: 50
-  },
-  subscribedAt: { 
-    type: Date, 
-    default: Date.now,
-    index: true
-  },
-  isActive: { 
-    type: Boolean, 
-    default: true,
-    index: true
-  },
-  source: { 
-    type: String, 
-    trim: true,
-    maxlength: 100
-  },
-  ip: { 
-    type: String,
-    trim: true
-  },
-  userAgent: { 
-    type: String,
-    trim: true
-  },
-  unsubscribedAt: { 
-    type: Date 
-  },
-  tags: [{ 
-    type: String, 
-    trim: true 
-  }]
-}, {
-  timestamps: true,
-});
-
-// Create the model
-const NewsletterUser = mongoose.models.NewsletterUser || mongoose.model('NewsletterUser', NewsletterUserSchema);
+import { NewsletterUser } from '@/lib/models/NewsletterUser';
 
 export async function POST(request: NextRequest) {
   try {

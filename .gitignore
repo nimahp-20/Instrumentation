@@ -15,7 +15,6 @@
 *.keystore
 id_rsa*
 .netrc
-.npmrc
 .aws/
 .azure/
 .gcp/

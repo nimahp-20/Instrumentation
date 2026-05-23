@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
+import { MONGODB_DB_NAME, resolveMongoUri } from '@/lib/mongo-uri';
 
 export async function GET() {
   try {
-    // Check if MongoDB URI is configured
-    const mongoUri = process.env.MONGODB_URI;
-    
+    const mongoUri = resolveMongoUri();
+
     if (!mongoUri) {
       return NextResponse.json({
         success: false,
@@ -16,7 +17,6 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    // Try to connect to MongoDB
     await connectDB();
 
     return NextResponse.json({
@@ -25,7 +25,9 @@ export async function GET() {
       message: 'API and database are working correctly',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
-      mongodb: 'connected'
+      mongodb: 'connected',
+      database: mongoose.connection.name,
+      expectedDatabase: MONGODB_DB_NAME,
     });
 
   } catch (error) {

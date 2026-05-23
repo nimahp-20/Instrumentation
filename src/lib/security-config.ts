@@ -27,12 +27,16 @@ export const SECURITY_CONFIG = {
   // Rate Limiting Configuration
   RATE_LIMITS: {
     AUTH: {
-      WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-      MAX_REQUESTS: 5, // 5 attempts per window
+      WINDOW_MS: 30 * 1000, // 30 seconds
+      MAX_REQUESTS: 15,
+    },
+    ADMIN_AUTH: {
+      WINDOW_MS: 30 * 1000, // 30 seconds
+      MAX_REQUESTS: 15,
     },
     GENERAL: {
       WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-      MAX_REQUESTS: 100, // 100 requests per window
+      MAX_REQUESTS: 100,
     },
     API: {
       WINDOW_MS: 60 * 1000, // 1 minute

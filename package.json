@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check-db": "node scripts/check-db.js",
+    "check-db": "tsx scripts/check-db.ts",
     "seed-production": "node scripts/seed-production.js",
     "fix-production": "node scripts/fix-production.js",
     "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
@@ -15,6 +15,7 @@
     "seed-db": "tsx src/lib/seed.ts",
     "seed-admin": "tsx src/lib/seed-admin.ts",
     "seed-products": "tsx src/lib/seed-products.ts",
+    "seed-all": "tsx src/lib/seed-all.ts",
     "cleanup-logs": "tsx src/lib/log-cleanup.ts",
     "log-stats": "tsx -e \"import('./src/lib/log-cleanup.ts').then(m => m.logCleanupService.getLogStats()).then(console.log)\""
   },
@@ -30,7 +31,8 @@
     "react-dom": "19.1.0"
   },
   "overrides": {
-    "@types/minimatch": "npm:minimatch@9.0.5"
+    "@types/minimatch": "npm:minimatch@9.0.5",
+    "is-core-module": "2.16.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

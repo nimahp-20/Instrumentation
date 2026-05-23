@@ -2,7 +2,6 @@ import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
-  _id: string;
   email: string;
   password: string;
   firstName: string;
@@ -22,7 +21,6 @@ export interface IUser extends Document {
   compareRefreshToken(candidateToken: string): Promise<boolean>;
   setRefreshToken(token: string): Promise<void>;
   clearRefreshToken(): Promise<void>;
-  toJSON(): Partial<IUser>;
 }
 
 type UserTransformRet = Record<string, unknown> & {
@@ -102,10 +100,15 @@ const UserSchema = new Schema<IUser>({
 
 UserSchema.index({ createdAt: -1 });
 
-// Pre-save middleware to hash password
+function isBcryptHash(value: string): boolean {
+  return /^\$2[aby]\$\d{2}\$.+/.test(value);
+}
+
+// Pre-save middleware to hash password (skip if already bcrypt — e.g. Compass paste)
 UserSchema.pre('save', async function() {
   if (!this.isModified('password')) return;
-  
+  if (typeof this.password === 'string' && isBcryptHash(this.password)) return;
+
   const saltRounds = 12;
   this.password = await bcrypt.hash(this.password, saltRounds);
 });

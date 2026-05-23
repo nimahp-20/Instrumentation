@@ -121,8 +121,7 @@ const LogSchema: Schema = new Schema({
   timestamp: {
     type: Date,
     required: true,
-    default: Date.now,
-    index: true
+    default: Date.now
   }
 }, {
   timestamps: true,

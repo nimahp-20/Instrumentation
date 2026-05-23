@@ -22,6 +22,8 @@ async function seedAdmin() {
     user.role = 'admin';
     user.isActive = true;
     user.emailVerified = true;
+    user.hashedRefreshToken = undefined;
+    user.tokenVersion = (user.tokenVersion || 1) + 1;
     await user.save();
     console.log('✅ Admin user updated (password reset)');
   } else {

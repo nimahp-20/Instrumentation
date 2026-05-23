@@ -3,7 +3,7 @@ import { Category, Product } from './models';
 import connectToDatabase from './mongodb';
 
 // Persian and English category data
-const categoriesData = [
+export const categoriesData = [
   {
     name: "ابزارهای برقی",
     nameEn: "Power Tools",
@@ -314,12 +314,12 @@ const _productsData = [
 ];
 
 // Function to generate random SKU
-function generateSKU(prefix: string, index: number): string {
+export function generateSKU(prefix: string, index: number): string {
   return `${prefix}-${String(index).padStart(3, '0')}`;
 }
 
 // Function to generate random specifications
-function generateSpecifications(): { [key: string]: string } {
+export function generateSpecifications(): { [key: string]: string } {
   const specs = [
     { key: "وزن", value: `${Math.floor(Math.random() * 5) + 1} کیلوگرم` },
     { key: "ابعاد", value: `${Math.floor(Math.random() * 50) + 10} × ${Math.floor(Math.random() * 30) + 5} × ${Math.floor(Math.random() * 20) + 3} سانتی‌متر` },
@@ -336,7 +336,7 @@ function generateSpecifications(): { [key: string]: string } {
 }
 
 // Function to generate random features
-function generateFeatures(): string[] {
+export function generateFeatures(): string[] {
   const allFeatures = [
     "کیفیت بالا",
     "دوام طولانی",
@@ -356,7 +356,7 @@ function generateFeatures(): string[] {
 }
 
 // Function to generate random tags
-function generateTags(categoryName: string): string[] {
+export function generateTags(categoryName: string): string[] {
   const baseTags = categoryName.toLowerCase().split(' ')[0];
   const additionalTags = [
     "حرفه‌ای",
@@ -373,7 +373,7 @@ function generateTags(categoryName: string): string[] {
 }
 
 // Function to generate random price in Toman
-function generatePrice(): { price: number; originalPrice?: number; discount?: number } {
+export function generatePrice(): { price: number; originalPrice?: number; discount?: number } {
   // Generate realistic Toman prices (much higher than USD)
   const basePrice = Math.floor(Math.random() * 8000000) + 2000000; // 2,000,000 - 10,000,000 Toman
   const hasDiscount = Math.random() > 0.6; // 40% chance of discount
@@ -392,14 +392,14 @@ function generatePrice(): { price: number; originalPrice?: number; discount?: nu
 }
 
 // Function to generate random rating and reviews
-function generateRating(): { rating: number; reviewCount: number } {
+export function generateRating(): { rating: number; reviewCount: number } {
   const rating = Math.round((Math.random() * 1.5 + 3.5) * 10) / 10; // 3.5-5.0
   const reviewCount = Math.floor(Math.random() * 200) + 10; // 10-210 reviews
   return { rating, reviewCount };
 }
 
 // Function to generate random stock
-function generateStock(): number {
+export function generateStock(): number {
   return Math.floor(Math.random() * 50) + 5; // 5-55 stock
 }
 
@@ -452,7 +452,7 @@ export async function seedDatabase() {
         tags: generateTags(categoryName),
         isActive: true,
         isFeatured: Math.random() > 0.7, // 30% chance of being featured
-        isNew: Math.random() > 0.8, // 20% chance of being new
+        isNewProduct: Math.random() > 0.8, // 20% chance of being new
         isOnSale: priceData.originalPrice ? true : false,
         sortOrder: i
       };

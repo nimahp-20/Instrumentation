@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
+import { loadLiaraEnvIntoProcess } from '../../lib/load-liara-env';
 
-/** Load .env.local / .env for standalone scripts (tsx, node). */
+/** Load .env.local first; liara.env only fills missing vars (for Liara server deploy). */
 export function loadEnvFiles(): void {
   for (const file of ['.env.local', '.env']) {
     const path = resolve(process.cwd(), file);
@@ -28,9 +29,11 @@ export function loadEnvFiles(): void {
         value = value.slice(1, -1);
       }
 
-      if (process.env[key] === undefined) {
+      // .env.local always wins locally (liara.env may already be set via mongodb import)
+      if (file === '.env.local' || process.env[key] === undefined) {
         process.env[key] = value;
       }
     }
   }
+  loadLiaraEnvIntoProcess();
 }

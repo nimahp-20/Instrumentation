@@ -1,11 +1,51 @@
 import jwt from 'jsonwebtoken';
+import { loadRuntimeEnv } from '@/lib/load-runtime-env';
 
-// Use environment variables or defaults for development
-const JWT_SECRET: string = process.env.JWT_SECRET || 'your-super-secret-jwt-key-here-make-it-long-and-random-for-development';
-const JWT_REFRESH_SECRET: string = process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-jwt-key-here-make-it-long-and-random-for-development';
+const DEV_JWT_SECRET =
+  'your-super-secret-jwt-key-here-make-it-long-and-random-for-development';
+const DEV_JWT_REFRESH_SECRET =
+  'your-super-secret-refresh-jwt-key-here-make-it-long-and-random-for-development';
 
-if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
-  console.warn('⚠️ JWT secrets not set in environment variables, using defaults (NOT SECURE FOR PRODUCTION)');
+let jwtSecretsWarningLogged = false;
+
+function getJwtSecret(): string {
+  loadRuntimeEnv();
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'JWT_SECRET must be set in environment variables (Liara → Environment Variables).'
+    );
+  }
+
+  if (!jwtSecretsWarningLogged) {
+    console.warn(
+      '⚠️ JWT secrets not set in environment variables, using defaults (NOT SECURE FOR PRODUCTION)'
+    );
+    jwtSecretsWarningLogged = true;
+  }
+  return DEV_JWT_SECRET;
+}
+
+function getJwtRefreshSecret(): string {
+  loadRuntimeEnv();
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (secret) return secret;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'JWT_REFRESH_SECRET must be set in environment variables (Liara → Environment Variables).'
+    );
+  }
+
+  if (!jwtSecretsWarningLogged) {
+    console.warn(
+      '⚠️ JWT secrets not set in environment variables, using defaults (NOT SECURE FOR PRODUCTION)'
+    );
+    jwtSecretsWarningLogged = true;
+  }
+  return DEV_JWT_REFRESH_SECRET;
 }
 
 // Token expiration times
@@ -27,7 +67,7 @@ export interface RefreshTokenPayload {
  * Generate access token
  */
 export function generateAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJwtSecret(), {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
     issuer: 'your-app-name',
     audience: 'your-app-users',
@@ -38,7 +78,7 @@ export function generateAccessToken(payload: TokenPayload): string {
  * Generate refresh token
  */
 export function generateRefreshToken(payload: RefreshTokenPayload): string {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, {
+  return jwt.sign(payload, getJwtRefreshSecret(), {
     expiresIn: REFRESH_TOKEN_EXPIRES_IN,
     issuer: 'your-app-name',
     audience: 'your-app-users',
@@ -50,7 +90,7 @@ export function generateRefreshToken(payload: RefreshTokenPayload): string {
  */
 export function verifyAccessToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as TokenPayload;
     return decoded;
   } catch (error) {
     console.error('Access token verification failed:', error);
@@ -63,7 +103,7 @@ export function verifyAccessToken(token: string): TokenPayload | null {
  */
 export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as RefreshTokenPayload;
+    const decoded = jwt.verify(token, getJwtRefreshSecret()) as RefreshTokenPayload;
     return decoded;
   } catch (error) {
     console.error('Refresh token verification failed:', error);

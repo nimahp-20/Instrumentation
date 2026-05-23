@@ -1,27 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ConditionalSiteChrome } from '@/components/layout/ConditionalSiteChrome';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { WishlistProvider } from '@/contexts/WishlistContext';
 import FetchInterceptorClient from '@/components/FetchInterceptorClient';
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Persian font configuration
-const _iranSans = {
-  variable: "--font-iran-sans",
-  family: "IRANSansX",
-};
 
 export const metadata: Metadata = {
   title: "فروشگاه ابزار - ابزارهای حرفه‌ای و تجهیزات",
@@ -99,7 +82,7 @@ export default function RootLayout({
         <link rel="apple-touch-startup-image" href="/icon-512x512.png" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-iran-sans antialiased flex flex-col min-h-screen`}
+        className="font-iran-sans antialiased flex flex-col min-h-screen"
       >
                <AuthProvider>
                  <CartProvider>

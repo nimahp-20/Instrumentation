@@ -1,7 +1,16 @@
 import mongoose from 'mongoose';
+import { loadRuntimeEnv } from '@/lib/load-runtime-env';
+import {
+  assertToolsDatabase,
+  getMongoHostForLog,
+  MONGODB_DB_NAME,
+  resolveMongoUri,
+} from '@/lib/mongo-uri';
+
+loadRuntimeEnv();
 
 function getMongoUri(): string {
-  return process.env.MONGODB_URI || '';
+  return resolveMongoUri();
 }
 
 interface MongooseCache {
@@ -33,16 +42,19 @@ async function connectDB(): Promise<typeof mongoose> {
 
   if (!cached!.promise) {
     const opts = {
+      dbName: MONGODB_DB_NAME,
       bufferCommands: false,
-      serverSelectionTimeoutMS: 10000, // 10 second timeout
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     };
 
     console.log('🔌 Attempting to connect to MongoDB...');
-    console.log('📍 MongoDB URI:', MONGODB_URI.replace(/\/\/.*@/, '//***:***@')); // Hide credentials in logs
+    console.log('📍 MongoDB URI:', MONGODB_URI.replace(/\/\/.*@/, '//***:***@'));
+    console.log(`📂 Host: ${getMongoHostForLog(MONGODB_URI)} | Database: ${MONGODB_DB_NAME}`);
 
     cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ Connected to MongoDB successfully');
+      assertToolsDatabase(mongoose.connection.name);
+      console.log(`✅ Connected to MongoDB database "${mongoose.connection.name}"`);
       return mongoose;
     }).catch((error) => {
       console.error('❌ MongoDB connection failed:', error.message);

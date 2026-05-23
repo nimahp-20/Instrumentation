@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIP, validateInput, hashSensitiveData } from '@/lib/security';
+import { SECURITY_CONFIG } from '@/lib/security-config';
 
 /**
  * Security middleware for API routes
  */
 
-// Rate limiting configurations
+const { AUTH, ADMIN_AUTH, GENERAL } = SECURITY_CONFIG.RATE_LIMITS;
+
 const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 5, // 5 attempts per window
-  keyGenerator: (req) => `auth:${getClientIP(req)}`
+  windowMs: AUTH.WINDOW_MS,
+  maxRequests: AUTH.MAX_REQUESTS,
+  keyGenerator: (req) => `auth:${getClientIP(req)}`,
 });
 
 const generalRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 100, // 100 requests per window
-  keyGenerator: (req) => `general:${getClientIP(req)}`
+  windowMs: GENERAL.WINDOW_MS,
+  maxRequests: GENERAL.MAX_REQUESTS,
+  keyGenerator: (req) => `general:${getClientIP(req)}`,
 });
 
-/** Stricter limit for admin login — 3 attempts per 15 minutes per IP */
 const adminAuthRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  maxRequests: 3,
+  windowMs: ADMIN_AUTH.WINDOW_MS,
+  maxRequests: ADMIN_AUTH.MAX_REQUESTS,
   keyGenerator: (req) => `admin-auth:${getClientIP(req)}`,
 });
 

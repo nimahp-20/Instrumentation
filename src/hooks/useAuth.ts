@@ -3,7 +3,6 @@ import {
   isAdminSession,
   setAdminSessionFlag,
   clearAdminSessionFlag,
-  getLoginRedirectPath,
 } from '@/lib/auth-session';
 
 export interface User {

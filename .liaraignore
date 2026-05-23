@@ -1,0 +1,14 @@
+node_modules
+.next
+.turbo
+out
+build
+dist
+coverage
+*.log
+.env
+.env.local
+.env.*.local
+
+# Liara runs npm install (not npm ci) — avoids "Exit handler never called" on npm ci
+package-lock.json
