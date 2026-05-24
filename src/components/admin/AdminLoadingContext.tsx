@@ -18,6 +18,7 @@ type AdminLoadingContextValue = {
   message: string;
   startLoading: (message?: string) => void;
   stopLoading: () => void;
+  resetLoading: () => void;
   runAsync: <T>(fn: () => Promise<T>, message?: string) => Promise<T>;
 };
 
@@ -48,6 +49,12 @@ export function AdminLoadingProvider({ children }: { children: ReactNode }) {
     syncVisible();
   }, [syncVisible]);
 
+  const resetLoading = useCallback(() => {
+    countRef.current = 0;
+    setMessage(DEFAULT_MESSAGE);
+    syncVisible();
+  }, [syncVisible]);
+
   const runAsync = useCallback(
     async <T,>(fn: () => Promise<T>, msg?: string): Promise<T> => {
       startLoading(msg);
@@ -61,8 +68,8 @@ export function AdminLoadingProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ isLoading, message, startLoading, stopLoading, runAsync }),
-    [isLoading, message, startLoading, stopLoading, runAsync]
+    () => ({ isLoading, message, startLoading, stopLoading, resetLoading, runAsync }),
+    [isLoading, message, startLoading, stopLoading, resetLoading, runAsync]
   );
 
   return (

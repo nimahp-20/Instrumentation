@@ -1,11 +1,19 @@
 'use client';
 
-import Link from 'next/link';
+import { AdminLink } from '@/components/admin/AdminLink';
 
 function IconMenu() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function IconClose() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }
@@ -43,7 +51,12 @@ function IconExpand() {
   );
 }
 
-export function AdminHeader() {
+type AdminHeaderProps = {
+  mobileMenuOpen: boolean;
+  onMenuToggle: () => void;
+};
+
+export function AdminHeader({ mobileMenuOpen, onMenuToggle }: AdminHeaderProps) {
   return (
     <header
       className="shrink-0 h-14 px-4 lg:px-6 flex items-center justify-between gap-4 text-white shadow-sm"
@@ -53,13 +66,15 @@ export function AdminHeader() {
         <button
           type="button"
           className="p-2 rounded-lg hover:bg-white/15 transition-colors lg:hidden"
-          aria-label="منو"
+          aria-label={mobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}
+          aria-expanded={mobileMenuOpen}
+          onClick={onMenuToggle}
         >
-          <IconMenu />
+          {mobileMenuOpen ? <IconClose /> : <IconMenu />}
         </button>
-        <Link href="/admin" className="flex items-center gap-2 min-w-0">
+        <AdminLink href="/admin" loadingMessage="در حال بارگذاری داشبورد..." className="flex items-center gap-2 min-w-0">
           <span className="font-bold text-lg tracking-tight truncate">ابزارکده مدیریت</span>
-        </Link>
+        </AdminLink>
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">

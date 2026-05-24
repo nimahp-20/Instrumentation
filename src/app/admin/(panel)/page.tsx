@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { AdminLoadingBlock } from '@/components/admin/AdminLoading';
 import { useAdminLoading } from '@/components/admin/AdminLoadingContext';
@@ -144,13 +144,13 @@ export default function AdminDashboardPage() {
           <MiniTrend />
           <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/20">
             {statTiles.map((t) => (
-              <Link key={t.label} href={t.href} className="flex items-center gap-3 rounded-lg bg-white/10 hover:bg-white/15 px-3 py-2 transition-colors">
+              <AdminLink key={t.label} href={t.href} loadingMessage={`در حال باز کردن ${t.label}...`} className="flex items-center gap-3 rounded-lg bg-white/10 hover:bg-white/15 px-3 py-2 transition-colors">
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${t.dot}`} />
                 <div>
                   <p className="text-xs text-white/75">{t.label}</p>
                   <p className="font-semibold tabular-nums">{typeof t.value === 'number' ? t.value.toLocaleString('fa-IR') : t.value}</p>
                 </div>
-              </Link>
+              </AdminLink>
             ))}
           </div>
         </div>
@@ -172,54 +172,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="admin-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/80">
-          <h2 className="font-semibold text-slate-800">دسترسی سریع</h2>
-          <div className="flex flex-wrap gap-2">
-            {['همه', 'محصولات', 'دسته‌ها'].map((tab, i) => (
-              <button
-                key={tab}
-                type="button"
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  i === 0
-                    ? 'text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-white'
-                }`}
-                style={i === 0 ? { background: 'var(--admin-header)' } : undefined}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="p-6 flex flex-wrap gap-3">
-          <Link
-            href="/admin/products"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-white shadow-md hover:opacity-95 transition-opacity"
-            style={{ background: 'linear-gradient(90deg, var(--admin-header) 0%, var(--admin-primary) 100%)' }}
-          >
-            مدیریت محصولات
-          </Link>
-          <Link
-            href="/admin/categories"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-white bg-slate-700 hover:bg-slate-800 transition-colors"
-          >
-            مدیریت دسته‌بندی‌ها
-          </Link>
-          <Link
-            href="/admin/users"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-white bg-slate-600 hover:bg-slate-700 transition-colors"
-          >
-            فهرست کاربران
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors"
-          >
-            مشاهده فروشگاه
-          </Link>
-        </div>
-      </div>
+     
     </div>
   );
 }

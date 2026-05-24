@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { AdminProductForm } from '@/components/admin/AdminProductForm';
 
 export default async function AdminEditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -10,12 +10,13 @@ export default async function AdminEditProductPage({ params }: { params: Promise
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">ویرایش محصول</h1>
           <p className="text-[var(--admin-muted)] text-sm mt-1">شناسه: {id}</p>
         </div>
-        <Link
+        <AdminLink
           href="/admin/products"
+          loadingMessage="در حال بازگشت به فهرست..."
           className="text-sm font-medium text-[var(--admin-primary)] hover:text-[var(--admin-header-deep)]"
         >
           ← بازگشت به فهرست
-        </Link>
+        </AdminLink>
       </header>
       <AdminProductForm productId={id} />
     </div>

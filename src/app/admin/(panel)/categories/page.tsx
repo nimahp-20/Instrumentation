@@ -83,6 +83,172 @@ function isAbsoluteOrUploadUrl(src: string): boolean {
   return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/');
 }
 
+function IconEdit() {
+  return (
+    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  );
+}
+
+function CategoryThumb({ category }: { category: CategoryRow }) {
+  const imageSrc =
+    category.image && isAbsoluteOrUploadUrl(category.image) ? category.image : null;
+
+  if (imageSrc) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- آپلود محلی /uploads
+      <img
+        src={imageSrc}
+        alt=""
+        width={44}
+        height={44}
+        className="rounded-xl object-cover w-11 h-11 ring-1 ring-slate-100 shadow-sm shrink-0"
+      />
+    );
+  }
+
+  if (category.icon) {
+    return (
+      <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center text-lg ring-1 ring-slate-100 bg-slate-50 shrink-0"
+        aria-hidden
+      >
+        {category.icon}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="w-11 h-11 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0"
+      style={{ background: 'linear-gradient(145deg, var(--admin-header) 0%, var(--admin-primary) 100%)' }}
+    >
+      {(category.name?.[0] || '?').toUpperCase()}
+    </div>
+  );
+}
+
+function CategoryStatusBadge({ isActive }: { isActive: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+        isActive ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-600'
+      }`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+      {isActive ? 'فعال' : 'غیرفعال'}
+    </span>
+  );
+}
+
+function CategoryActions({
+  category,
+  busy,
+  onEdit,
+  onDelete,
+  layout = 'inline',
+}: {
+  category: CategoryRow;
+  busy: boolean;
+  onEdit: (category: CategoryRow) => void;
+  onDelete: (category: CategoryRow) => void;
+  layout?: 'inline' | 'bar';
+}) {
+  const btnBase =
+    layout === 'bar'
+      ? 'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-40'
+      : 'inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors disabled:opacity-40';
+
+  return (
+    <div className={layout === 'bar' ? 'flex items-stretch gap-2' : 'flex flex-wrap items-center gap-1'}>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onEdit(category)}
+        className={`${btnBase} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300`}
+        title="ویرایش"
+      >
+        <IconEdit />
+        <span>ویرایش</span>
+      </button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onDelete(category)}
+        className={`${btnBase} border border-red-200 bg-red-50 text-red-800 hover:bg-red-100`}
+        title="حذف"
+      >
+        <IconTrash />
+        <span>حذف</span>
+      </button>
+    </div>
+  );
+}
+
+function CategoryMobileCard({
+  category,
+  busy,
+  onEdit,
+  onDelete,
+}: {
+  category: CategoryRow;
+  busy: boolean;
+  onEdit: (category: CategoryRow) => void;
+  onDelete: (category: CategoryRow) => void;
+}) {
+  const isActive = category.isActive !== false;
+
+  return (
+    <article className="p-4 space-y-3">
+      <CategoryActions
+        category={category}
+        busy={busy}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        layout="bar"
+      />
+
+      <div className="flex items-start gap-3">
+        <CategoryThumb category={category} />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-slate-800 leading-snug">{category.name}</p>
+          {category.nameEn ? (
+            <p className="text-xs text-slate-500 truncate mt-0.5">{category.nameEn}</p>
+          ) : null}
+          <p className="text-xs text-slate-400 font-mono truncate mt-0.5">{category.slug}</p>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <CategoryStatusBadge isActive={isActive} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+        <div>
+          <p className="text-[11px] text-[var(--admin-muted)] mb-0.5">محصولات</p>
+          <span className="text-sm font-semibold tabular-nums text-slate-700">
+            {(category.productCount ?? 0).toLocaleString('fa-IR')}
+          </span>
+        </div>
+        <div>
+          <p className="text-[11px] text-[var(--admin-muted)] mb-0.5">ترتیب</p>
+          <span className="text-sm font-semibold tabular-nums text-slate-700">
+            {(category.sortOrder ?? 0).toLocaleString('fa-IR')}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function AdminCategoriesPage() {
   const { runAsync } = useAdminLoading();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -93,6 +259,7 @@ export default function AdminCategoriesPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [actionSlug, setActionSlug] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const revokeLocalPreview = useCallback(() => {
@@ -286,6 +453,7 @@ export default function AdminCategoriesPage() {
     const ok = window.confirm(`حذف دسته «${c.name}»؟ این عمل برگشت‌پذیر نیست.`);
     if (!ok) return;
     setBanner(null);
+    setActionSlug(c.slug);
     try {
       await runAsync(async () => {
         const res = await fetch(`/api/categories/${encodeURIComponent(c.slug)}`, {
@@ -302,6 +470,8 @@ export default function AdminCategoriesPage() {
       }, 'در حال حذف دسته...');
     } catch {
       setBanner({ type: 'err', text: 'خطای شبکه هنگام حذف' });
+    } finally {
+      setActionSlug(null);
     }
   };
 
@@ -334,64 +504,88 @@ export default function AdminCategoriesPage() {
       )}
 
       <div className="admin-card overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 bg-slate-50/80">
+          <h2 className="font-semibold text-slate-800">فهرست دسته‌بندی‌ها</h2>
+          <p className="text-xs text-[var(--admin-muted)] mt-0.5">
+            عملیات در ابتدای هر ردیف · در موبایل به‌صورت کارت
+          </p>
+        </div>
+
         {loading ? (
           <AdminLoadingBlock message="در حال بارگذاری دسته‌ها..." />
         ) : categories.length === 0 ? (
           <p className="p-10 text-center text-[var(--admin-muted)]">دسته‌بندی یافت نشد</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50/90 text-slate-600 border-b border-slate-100">
-                  <th className="text-start p-4 font-semibold">نام</th>
-                  <th className="text-start p-4 font-semibold">اسلاگ</th>
-                  <th className="text-start p-4 font-semibold">محصولات</th>
-                  <th className="text-start p-4 font-semibold">وضعیت</th>
-                  <th className="text-end p-4 font-semibold">عملیات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((c) => (
-                  <tr key={c._id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
-                    <td className="p-4 font-medium text-slate-800">{c.name}</td>
-                    <td className="p-4 text-slate-500 font-mono text-xs">{c.slug}</td>
-                    <td className="p-4 text-slate-600 tabular-nums">
-                      {(c.productCount ?? 0).toLocaleString('fa-IR')}
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          c.isActive !== false ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        {c.isActive !== false ? 'فعال' : 'غیرفعال'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-end whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(c)}
-                        className="text-[var(--admin-primary)] hover:text-[var(--admin-header-deep)] font-medium ms-3"
-                      >
-                        ویرایش
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(c)}
-                        className="text-red-600 hover:text-red-700 font-medium ms-3"
-                      >
-                        حذف
-                      </button>
-                    </td>
+          <>
+            <div className="md:hidden divide-y divide-slate-100">
+              {categories.map((c) => (
+                <CategoryMobileCard
+                  key={c._id}
+                  category={c}
+                  busy={actionSlug === c.slug}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="admin-products-table w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50/90 text-slate-600 border-b border-slate-100">
+                    <th className="admin-products-actions-col text-start p-4 font-semibold whitespace-nowrap min-w-[8rem]">
+                      عملیات
+                    </th>
+                    <th className="text-start p-4 font-semibold min-w-[12rem]">دسته</th>
+                    <th className="text-start p-4 font-semibold whitespace-nowrap">محصولات</th>
+                    <th className="text-start p-4 font-semibold whitespace-nowrap">وضعیت</th>
+                    <th className="text-start p-4 font-semibold hidden xl:table-cell">اسلاگ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {categories.map((c) => {
+                    const busy = actionSlug === c.slug;
+                    const isActive = c.isActive !== false;
+                    return (
+                      <tr key={c._id} className="group border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                        <td className="admin-products-actions-col p-3">
+                          <CategoryActions
+                            category={c}
+                            busy={busy}
+                            onEdit={openEdit}
+                            onDelete={handleDelete}
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <CategoryThumb category={c} />
+                            <div className="min-w-0">
+                              <p className="font-medium text-slate-800 truncate">{c.name}</p>
+                              {c.nameEn ? (
+                                <p className="text-xs text-slate-500 truncate">{c.nameEn}</p>
+                              ) : null}
+                              <p className="text-xs text-slate-400 font-mono truncate xl:hidden">{c.slug}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-slate-600 tabular-nums">
+                          {(c.productCount ?? 0).toLocaleString('fa-IR')}
+                        </td>
+                        <td className="p-4">
+                          <CategoryStatusBadge isActive={isActive} />
+                        </td>
+                        <td className="p-4 text-slate-500 font-mono text-xs hidden xl:table-cell">{c.slug}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
-      {panelOpen && (
+            {panelOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-4 sm:p-6"
           role="presentation"

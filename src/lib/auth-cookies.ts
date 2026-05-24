@@ -63,6 +63,14 @@ export function clearAdminAuthCookies(response: NextResponse) {
   }
 }
 
+/** Clear all auth cookies (stale refresh token, logout, invalid signature) */
+export function clearAllAuthCookies(response: NextResponse) {
+  const expired = getSecureCookieOptions(0);
+  for (const name of ['adminAccessToken', 'accessToken', 'refreshToken', 'authMode'] as const) {
+    response.cookies.set(name, '', { ...expired, maxAge: 0 });
+  }
+}
+
 export function isAdminAuthMode(request: { cookies: { get: (name: string) => { value?: string } | undefined } }): boolean {
   return request.cookies.get('authMode')?.value === AUTH_MODE_ADMIN;
 }

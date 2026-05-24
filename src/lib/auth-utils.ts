@@ -106,7 +106,13 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
     const decoded = jwt.verify(token, getJwtRefreshSecret()) as RefreshTokenPayload;
     return decoded;
   } catch (error) {
-    console.error('Refresh token verification failed:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+  if (msg.includes('invalid signature') || msg.includes('jwt expired')) {
+      // Stale cookie from old JWT secrets or expired session — expected locally
+      console.warn('Refresh token rejected:', msg);
+    } else {
+      console.error('Refresh token verification failed:', error);
+    }
     return null;
   }
 }

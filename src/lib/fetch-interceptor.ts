@@ -114,10 +114,9 @@ if (typeof window !== 'undefined') {
     async interceptFetch(url: string, options: RequestInit = {}): Promise<Response> {
       console.log('🔗 Global interceptor: Intercepting fetch for:', url);
       
-      // Get current tokens using the same format as useAuth hook
-      const accessToken = localStorage.getItem('accessToken');
+      // Admin sessions use httpOnly cookies — don't send stale user Bearer tokens
+      const accessToken = isAdminSession() ? null : localStorage.getItem('accessToken');
 
-      // Add authorization header if we have tokens
       if (accessToken) {
         options.headers = {
           ...options.headers,

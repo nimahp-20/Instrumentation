@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { User } from '@/lib/models/User';
 import connectToDatabase from '@/lib/mongodb';
 import { verifyRefreshToken, generateTokenPair } from '@/lib/auth-utils';
-import { isAdminAuthMode, setAdminAccessCookie, setRefreshTokenCookie } from '@/lib/auth-cookies';
+import {
+  clearAllAuthCookies,
+  isAdminAuthMode,
+  setAdminAccessCookie,
+  setRefreshTokenCookie,
+} from '@/lib/auth-cookies';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,13 +28,16 @@ export async function POST(request: NextRequest) {
     // Verify refresh token
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'توکن بازخوانی نامعتبر یا منقضی شده است' 
+      const response = NextResponse.json(
+        {
+          success: false,
+          message: 'توکن بازخوانی نامعتبر یا منقضی شده است — لطفاً دوباره وارد شوید',
+          code: 'REFRESH_TOKEN_INVALID',
         },
         { status: 403 }
       );
+      clearAllAuthCookies(response);
+      return response;
     }
 
     // Connect to database

@@ -25,6 +25,8 @@ interface ProductFilterProps {
   brands?: string[];
   className?: string;
   loading?: boolean;
+  /** روی صفحهٔ یک دسته‌بندی — انتخاب دسته مخفی می‌شود */
+  hideCategorySelect?: boolean;
 }
 
 const chipActiveStyle = {
@@ -40,6 +42,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
   brands = [],
   className = '',
   loading = false,
+  hideCategorySelect = false,
 }) => {
   const [searchValue, setSearchValue] = useState(filters.search || '');
   const filtersRef = useRef(filters);
@@ -129,25 +132,27 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
       </div>
 
       <div className="border-t border-slate-100 pt-5 space-y-4">
-        <div>
-          <label htmlFor="product-filter-category" className={labelCls}>
-            دسته‌بندی
-          </label>
-          <select
-            id="product-filter-category"
-            value={filters.category || ''}
-            onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-            disabled={loading}
-            className="profile-select w-full py-2.5 text-sm min-h-[2.75rem] disabled:opacity-50"
-          >
-            <option value="">همه</option>
-            {categories.map((category) => (
-              <option key={category._id} value={category.slug}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {!hideCategorySelect && (
+          <div>
+            <label htmlFor="product-filter-category" className={labelCls}>
+              دسته‌بندی
+            </label>
+            <select
+              id="product-filter-category"
+              value={filters.category || ''}
+              onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
+              disabled={loading}
+              className="profile-select w-full py-2.5 text-sm min-h-[2.75rem] disabled:opacity-50"
+            >
+              <option value="">همه</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category.slug}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label htmlFor="product-filter-brand" className={labelCls}>

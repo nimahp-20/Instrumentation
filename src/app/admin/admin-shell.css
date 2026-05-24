@@ -42,3 +42,56 @@
   box-shadow: 0 12px 40px rgb(15 23 42 / 0.18);
   min-width: min(18rem, 90vw);
 }
+
+.admin-mobile-menu-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+@media (min-width: 1024px) {
+  .admin-mobile-menu-root {
+    display: none !important;
+  }
+}
+
+.admin-mobile-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.admin-mobile-menu-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: min(280px, 88vw);
+  max-width: 100%;
+  overflow-y: auto;
+  box-shadow: -8px 0 32px rgb(0 0 0 / 0.35);
+}
+
+.admin-products-table .admin-products-actions-col {
+  position: sticky;
+  inset-inline-end: 0;
+  z-index: 10;
+  background: #fff;
+  box-shadow: -4px 0 12px -4px rgb(15 23 42 / 0.12);
+}
+
+.admin-products-table thead .admin-products-actions-col {
+  z-index: 20;
+  background: rgb(248 250 252 / 0.98);
+}
+
+.admin-products-table tbody tr:hover .admin-products-actions-col {
+  background: rgb(248 250 252 / 0.85);
+}

@@ -61,11 +61,12 @@ export const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = (
     </div>
   ) : (
     <div className={gridClassName}>
-      {products.map((product) => (
+      {products.map((product, index) => (
         <ProductCard
           key={product.id}
           product={product}
           variant={productCardVariant}
+          animationIndex={index}
           onAddToCart={onAddToCart}
           onViewProduct={onViewProduct}
         />

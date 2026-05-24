@@ -1,22 +1,24 @@
 import { NextRequest } from 'next/server';
 import { extractTokenFromHeader } from '@/lib/auth-utils';
+import { isAdminAuthMode } from '@/lib/auth-cookies';
 
-/** Bearer header, then admin httpOnly cookie, then optional legacy accessToken cookie */
+/** Admin httpOnly cookie first when in admin session, then Bearer, then legacy accessToken cookie */
 export function extractAccessToken(request: NextRequest): string | null {
+  const adminCookie = request.cookies.get('adminAccessToken')?.value;
+  if (isAdminAuthMode(request) && adminCookie) {
+    return adminCookie;
+  }
+
   const bearer = extractTokenFromHeader(request.headers.get('authorization') || undefined);
   if (bearer) return bearer;
 
-  return (
-    request.cookies.get('adminAccessToken')?.value ??
-    request.cookies.get('accessToken')?.value ??
-    null
-  );
+  return adminCookie ?? request.cookies.get('accessToken')?.value ?? null;
 }
 
-/** Admin API routes — only admin httpOnly cookie or Bearer (no localStorage-only user tokens) */
+/** Admin API routes — admin httpOnly cookie first, then Bearer */
 export function extractAdminAccessToken(request: NextRequest): string | null {
-  const bearer = extractTokenFromHeader(request.headers.get('authorization') || undefined);
-  if (bearer) return bearer;
+  const adminCookie = request.cookies.get('adminAccessToken')?.value;
+  if (adminCookie) return adminCookie;
 
-  return request.cookies.get('adminAccessToken')?.value ?? null;
+  return extractTokenFromHeader(request.headers.get('authorization') || undefined) ?? null;
 }

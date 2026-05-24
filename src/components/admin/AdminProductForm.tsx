@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
+import { AdminLink } from '@/components/admin/AdminLink';
 import { useRouter } from 'next/navigation';
 import {
   ADMIN_IMAGE_MAX_BYTES,
@@ -644,12 +644,13 @@ export function AdminProductForm({ productId }: { productId?: string }) {
         >
           {saving ? 'در حال ذخیره...' : isEdit ? 'ذخیره تغییرات' : 'ایجاد محصول'}
         </button>
-        <Link
+        <AdminLink
           href="/admin/products"
+          loadingMessage="در حال بازگشت..."
           className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           انصراف
-        </Link>
+        </AdminLink>
       </div>
     </form>
   );

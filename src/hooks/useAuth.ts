@@ -184,8 +184,8 @@ class AuthService {
       ...(options.headers as Record<string, string>),
     };
 
-    // Add access token to headers if available
-    if (tokens?.accessToken) {
+    // Admin sessions use httpOnly cookies — skip stale user Bearer tokens from localStorage
+    if (tokens?.accessToken && !isAdminSession()) {
       headers.Authorization = `Bearer ${tokens.accessToken}`;
     }
 
@@ -273,6 +273,7 @@ class AuthService {
       const data = (await response.json()) as ApiResponse<AdminLoginPayload>;
 
       if (data.success && data.data) {
+        this.clearTokens();
         setAdminSessionFlag();
         this.setExpiresIn(data.data.expiresIn);
         this.setCurrentUser(data.data.user);
@@ -742,8 +743,11 @@ export function useAuth() {
     console.log('🔄 updateProfile called');
     console.log('Auth state:', { isAuthenticated: authState.isAuthenticated, hasTokens: !!authState.tokens });
     
-    // Only call getProfile if user is authenticated
-    if (!authState.isAuthenticated || !authState.tokens) {
+  const hasSession =
+    authState.isAuthenticated &&
+    (authState.tokens || (typeof window !== 'undefined' && isAdminSession()));
+
+  if (!hasSession) {
       console.log('❌ User not authenticated, skipping profile update');
       return {
         success: false,
@@ -775,8 +779,11 @@ export function useAuth() {
       if (currentPath !== '/login' && currentPath !== '/register') {
         sessionStorage.setItem('redirectAfterLogin', currentPath);
       }
-      // Redirect to login
-      window.location.href = '/login';
+      const loginPath =
+        typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+          ? '/admin/login'
+          : '/login';
+      window.location.href = loginPath;
     }
     // For other errors, don't clear tokens - let the apiCall method handle them
     return response;
