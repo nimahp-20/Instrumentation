@@ -141,10 +141,10 @@ function CategoryStatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-        isActive ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-600'
+        isActive ? 'bg-blue-50 text-blue-800' : 'bg-slate-100 text-slate-600'
       }`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-blue-500' : 'bg-slate-400'}`} />
       {isActive ? 'فعال' : 'غیرفعال'}
     </span>
   );
@@ -495,7 +495,7 @@ export default function AdminCategoriesPage() {
         <div
           className={`rounded-[10px] border px-4 py-3 text-sm ${
             banner.type === 'ok'
-              ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
+              ? 'bg-blue-50 border-blue-100 text-blue-800'
               : 'bg-red-50 border-red-100 text-red-700'
           }`}
         >

@@ -124,3 +124,69 @@ export function IconSave(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconChevronLeft(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M15 19l-7-7 7-7" />
+    </svg>
+  );
+}
+
+export function IconWallet(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+  );
+}
+
+export function IconLocation(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+export function IconLock(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+  );
+}
+
+export function IconReturn(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M3 10h10a4 4 0 014 4v0a4 4 0 01-4 4H8m0 0l3-3m-3 3l3 3" />
+      <path d="M21 16V8a2 2 0 00-2-2h-1" />
+    </svg>
+  );
+}
+
+export function IconInfo(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+export function IconTruck(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10m10 0h4m-4 0a2 2 0 100 4m0-4v4m8-6h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V16h-6m0 0a2 2 0 100 4m0-4v4" />
+    </svg>
+  );
+}
+
+export function IconDocument(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={props.className} fill="none" viewBox="0 0 24 24" stroke="currentColor" {...stroke} {...props}>
+      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+}

@@ -146,7 +146,7 @@ export default function ProductsPage() {
           >
             <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgb(15_23_42/0.15)_100%)]" />
             <div className="absolute bottom-4 end-6 text-white/90 text-sm font-medium flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
               فروشگاه ابزارکده
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function ProductsPage() {
                     {filters.order === 'asc' ? ' (صعودی)' : ' (نزولی)'}
                   </span>
                   {shown > 0 && (
-                    <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-sm font-medium bg-emerald-50 text-emerald-900 border border-emerald-200/80">
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-sm font-medium bg-blue-50 text-blue-900 border border-blue-200/80">
                       {shown.toLocaleString('fa-IR')} مورد در این صفحه
                     </span>
                   )}

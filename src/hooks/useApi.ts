@@ -237,6 +237,8 @@ export function useProducts(options?: {
   sort?: string;
   order?: 'asc' | 'desc';
   search?: string;
+  /** وقتی false است درخواست زده نمی‌شود */
+  enabled?: boolean;
 }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -244,6 +246,14 @@ export function useProducts(options?: {
   const [pagination, setPagination] = useState<ApiResponse<Product[]>['pagination']>(undefined);
 
   useEffect(() => {
+    if (options?.enabled === false) {
+      setProducts([]);
+      setPagination(undefined);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     const fetchProducts = async () => {
       try {
         setLoading(true);
@@ -299,7 +309,8 @@ export function useProducts(options?: {
     options?.inStock,
     options?.sort,
     options?.order,
-    options?.search
+    options?.search,
+    options?.enabled,
   ]);
 
   return { products, loading, error, pagination };

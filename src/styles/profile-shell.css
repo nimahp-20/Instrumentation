@@ -102,3 +102,146 @@
 .profile-shell .profile-btn-accent-ghost:hover {
   background: rgb(219 234 254);
 }
+
+/* ─── داشبورد پروفایل (سایدبار + موبایل) ─── */
+.profile-shell .profile-layout {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .profile-shell .profile-layout {
+    display: grid;
+    /* در RTL: ستون اول (سایدبار) سمت راست، محتوا سمت چپ */
+    grid-template-columns: 17.5rem minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+.profile-shell .profile-sidebar {
+  background: var(--admin-card);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+  border: 1px solid rgb(226 232 240 / 0.9);
+  overflow: hidden;
+}
+
+.profile-shell .profile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  border-bottom: 1px solid rgb(241 245 249);
+}
+
+.profile-shell .profile-nav-item:hover {
+  background: rgb(241 245 249 / 0.9);
+}
+
+.profile-shell .profile-nav-item--active {
+  background: rgb(241 245 249);
+  color: var(--admin-primary);
+}
+
+.profile-shell .profile-nav-item--logout {
+  color: #c2410c;
+}
+
+.profile-shell .profile-nav-item--logout:hover {
+  background: rgb(255 247 237);
+}
+
+.profile-shell .profile-nav-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--admin-primary);
+  background: rgb(231 245 255);
+}
+
+.profile-shell .profile-nav-item--logout .profile-nav-icon {
+  color: #ea580c;
+  background: rgb(255 237 213);
+}
+
+.profile-shell .profile-national-banner {
+  background: linear-gradient(135deg, rgb(231 245 255) 0%, rgb(224 242 254) 100%);
+  border: 1px solid rgb(186 230 253);
+  border-radius: var(--admin-radius);
+}
+
+.profile-shell .profile-wallet-box {
+  border: 1px solid rgb(186 230 253);
+  border-radius: 10px;
+  background: rgb(239 246 255 / 0.6);
+}
+
+.profile-shell .profile-stat-pill {
+  flex: 1;
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border-inline-start: 1px solid rgb(226 232 240);
+}
+
+.profile-shell .profile-stat-pill:first-child {
+  border-inline-start: none;
+}
+
+.profile-shell .profile-activity-ring {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--admin-primary);
+  background: rgb(224 242 254);
+  border: 3px solid rgb(186 230 253);
+}
+
+.profile-shell .profile-order-row {
+  border-bottom: 1px solid rgb(241 245 249);
+  padding: 1rem 0;
+}
+
+.profile-shell .profile-order-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.profile-shell .profile-badge-success {
+  background: rgb(231 245 255);
+  color: var(--admin-primary);
+  border: 1px solid rgb(186 230 253);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+}
+
+@media (max-width: 1023px) {
+  .profile-shell .profile-sidebar--desktop-only {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-shell .profile-mobile-only {
+    display: none;
+  }
+}

@@ -20,7 +20,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'delivered':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
+        return 'bg-blue-50 text-blue-800 border-blue-200/80';
       case 'shipped':
         return 'bg-sky-50 text-sky-900 border-sky-200/80';
       case 'pending':
@@ -96,7 +96,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ orders }) => {
                     مشاهده جزئیات
                   </button>
                   {order.status === 'delivered' && (
-                    <button type="button" className="px-4 py-2 text-sm font-semibold rounded-[10px] border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100/90 transition-colors">
+                    <button type="button" className="px-4 py-2 text-sm font-semibold rounded-[10px] border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100/90 transition-colors">
                       سفارش مجدد
                     </button>
                   )}

@@ -40,13 +40,13 @@ export function AdminToast({
       <div
         className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg ${
           isSuccess
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            ? 'bg-blue-50 border-blue-200 text-blue-900'
             : 'bg-red-50 border-red-200 text-red-900'
         }`}
       >
         <span
           className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-            isSuccess ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+            isSuccess ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
           }`}
           aria-hidden
         >

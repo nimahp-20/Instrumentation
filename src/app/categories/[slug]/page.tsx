@@ -181,7 +181,7 @@ export default function CategoryPage() {
           >
             <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgb(15_23_42/0.15)_100%)]" />
             <div className="absolute bottom-4 end-6 text-white/90 text-sm font-medium flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
               فروشگاه ابزارکده
             </div>
           </div>

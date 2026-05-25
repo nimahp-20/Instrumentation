@@ -1,7 +1,7 @@
 
 <svg width="384" height="384" viewBox="0 0 384 384" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background circle -->
-  <circle cx="192" cy="192" r="188" fill="#059669" stroke="#047857" stroke-width="2"/>
+  <circle cx="192" cy="192" r="188" fill="#228be6" stroke="#1864ab" stroke-width="2"/>
   
   <!-- Tool icon (wrench) -->
   <g transform="translate(192, 192)">

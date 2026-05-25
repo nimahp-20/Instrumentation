@@ -101,10 +101,10 @@ function ProductStatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-        isActive ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-600'
+        isActive ? 'bg-blue-50 text-blue-800' : 'bg-slate-100 text-slate-600'
       }`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-blue-500' : 'bg-slate-400'}`} />
       {isActive ? 'فعال' : 'غیرفعال'}
     </span>
   );
@@ -180,7 +180,7 @@ function ProductActions({
           type="button"
           disabled={busy}
           onClick={() => onPending({ type: 'restock', product })}
-          className={`${btnBase} border border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100`}
+          className={`${btnBase} border border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100`}
           title="موجود کردن"
         >
           <IconStockIn />
@@ -463,7 +463,7 @@ export default function AdminProductsPage() {
         >
           <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgb(15_23_42/0.15)_100%)]" />
           <div className="absolute bottom-4 end-6 text-white/90 text-sm font-medium flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
             مدیریت کاتالوگ
           </div>
         </div>
@@ -569,7 +569,7 @@ export default function AdminProductsPage() {
         <div className="admin-card p-5 sm:p-6 transition-shadow hover:shadow-lg">
           <div className="flex items-center gap-4">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-emerald-600"
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-blue-600"
               style={{ background: 'rgb(220 252 231 / 0.9)' }}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -470,7 +470,7 @@ export function AdminProductForm({ productId }: { productId?: string }) {
               if (Number.isNaN(base) || base < 0 || Number.isNaN(pct) || pct <= 0 || pct > 100) return null;
               const final = Math.round(base * (1 - pct / 100));
               return (
-                <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 tabular-nums">
+                <p className="text-xs text-blue-800 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1.5 tabular-nums">
                   قیمت فروش: {final.toLocaleString('fa-IR')} تومان
                 </p>
               );

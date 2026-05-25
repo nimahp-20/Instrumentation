@@ -105,7 +105,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
             {message && (
               <div className={`p-4 rounded-lg text-center ${
                 message.type === 'success' 
-                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                  ? 'bg-blue-100 text-blue-800 border border-blue-200' 
                   : 'bg-red-100 text-red-800 border border-red-200'
               }`}>
                 <div className="flex items-center justify-center space-x-2 space-x-reverse">
@@ -137,7 +137,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             <div className="text-center">
               <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>

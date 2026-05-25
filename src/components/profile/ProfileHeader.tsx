@@ -31,7 +31,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
       >
         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgb(15_23_42/0.15)_100%)]" />
         <div className="absolute bottom-4 end-6 text-white/90 text-sm font-medium flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
           حساب فعال
         </div>
       </div>
@@ -58,12 +58,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
               <span
                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-sm font-medium border ${
                   user?.emailVerified
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
+                    ? 'bg-blue-50 text-blue-800 border-blue-200/80'
                     : 'bg-amber-50 text-amber-900 border-amber-200/80'
                 }`}
               >
                 {user?.emailVerified ? (
-                  <IconCheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <IconCheckCircle className="w-4 h-4 shrink-0 text-blue-600" />
                 ) : (
                   <IconExclamation className="w-4 h-4 shrink-0 text-amber-600" />
                 )}

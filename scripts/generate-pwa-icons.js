@@ -9,7 +9,7 @@ function createIcon(size) {
   const svg = `
 <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background circle -->
-  <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 4}" fill="#059669" stroke="#047857" stroke-width="2"/>
+  <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 4}" fill="#228be6" stroke="#1864ab" stroke-width="2"/>
   
   <!-- Tool icon (wrench) -->
   <g transform="translate(${size/2}, ${size/2})">

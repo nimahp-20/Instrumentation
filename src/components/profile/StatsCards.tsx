@@ -34,7 +34,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ user }) => {
       <div className="profile-card p-5 sm:p-6 transition-shadow hover:shadow-lg">
         <div className="flex items-center gap-4">
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-emerald-600"
+            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-blue-600"
             style={{ background: 'rgb(220 252 231 / 0.9)' }}
           >
             <IconCalendar className="w-6 h-6" />

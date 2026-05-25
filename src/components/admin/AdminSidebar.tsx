@@ -107,8 +107,8 @@ function SidebarContent({
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-white truncate text-sm">{userName}</p>
-            <p className="text-xs text-emerald-400 flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <p className="text-xs text-blue-500 flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
               آنلاین
             </p>
           </div>

@@ -154,10 +154,10 @@ export default function AdminUsersPage() {
                     <td className="p-4">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          u.isActive ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'
+                          u.isActive ? 'bg-blue-50 text-blue-800' : 'bg-red-50 text-red-700'
                         }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-emerald-500' : 'bg-red-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? 'bg-blue-500' : 'bg-red-400'}`} />
                         {u.isActive ? 'فعال' : 'غیرفعال'}
                       </span>
                     </td>

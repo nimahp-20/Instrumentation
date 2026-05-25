@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui';
 import { AuthModal } from '../auth/AuthModal';
 import { useAuthContext } from '@/contexts/AuthContext';
 import type { User } from '@/hooks/useAuth';
 import { useGlobalSearch } from '@/hooks/useApi';
 import { IssueManager, SystemIssue, getIssuesForEnvironment, getHighestSeverity } from '@/lib/issue-manager';
+import {
+  CategoriesMegaMenuTrigger,
+  CategoriesMegaMenuPanel,
+} from '@/components/layout/CategoriesMegaMenu';
 
 // Notification types
 interface Notification {
@@ -23,8 +25,7 @@ interface Notification {
   read: boolean;
 }
 
-const SITE_NAV = [
-  { href: '/', label: 'خانه' },
+const SITE_NAV_AFTER_CATEGORIES = [
   { href: '/products', label: 'محصولات' },
   { href: '/about', label: 'درباره ما' },
   { href: '/contact', label: 'تماس' },
@@ -123,7 +124,7 @@ const UserDropdown: React.FC<{
       {/* User info header */}
       <div className="px-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center shadow-sm">
             <span className="text-white font-semibold text-sm">
               {user?.firstName?.[0] || user?.email?.[0] || 'U'}
             </span>
@@ -246,7 +247,7 @@ const NotificationsDropdown: React.FC<{
             >
               <div className="flex items-start space-x-3 space-x-reverse">
                 <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                  notification.type === 'success' ? 'bg-green-500' :
+                  notification.type === 'success' ? 'bg-blue-500' :
                   notification.type === 'warning' ? 'bg-yellow-500' :
                   notification.type === 'error' ? 'bg-red-500' :
                   'bg-[var(--info)]'
@@ -280,179 +281,10 @@ const NotificationsDropdown: React.FC<{
   );
 };
 
-// Mobile Menu Component
-const MobileMenu: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  pathname: string | null;
-  isAuthenticated: boolean;
-  user: User | null;
-  onLogout: () => void;
-  onShowAuthModal: () => void;
-}> = ({ isOpen, onClose, pathname, isAuthenticated, user, onLogout, onShowAuthModal }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen || !mounted) return null;
-
-  return createPortal(
-    <div className="mobile-menu-root" role="dialog" aria-modal="true" aria-label="منوی موبایل">
-      <button
-        type="button"
-        className="mobile-menu-backdrop"
-        onClick={onClose}
-        aria-label="بستن منو"
-        tabIndex={-1}
-      />
-
-      <aside className="mobile-menu-drawer">
-        <div className="mobile-menu-drawer__head">
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">منو</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 hover:bg-[var(--surface-muted)] rounded-[var(--radius-md)] transition-colors"
-            aria-label="بستن"
-          >
-            <svg className="w-6 h-6 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mobile-menu-drawer__body">
-        {/* User Section */}
-        {isAuthenticated && user ? (
-          <div className="p-4 bg-gradient-to-br from-slate-800 via-slate-900 to-emerald-950 text-white border-b border-white/10">
-            <div className="flex items-center space-x-3 space-x-reverse mb-3">
-              <div className="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center ring-2 ring-amber-400/40">
-                <span className="text-white font-semibold text-lg">
-                  {user?.firstName?.[0] || user?.email?.[0] || 'U'}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-xs text-slate-300 truncate">{user?.email}</p>
-              </div>
-            </div>
-            <Link href="/profile" onClick={onClose}>
-              <Button size="sm" className="w-full !bg-amber-400 !text-slate-900 hover:!bg-amber-300 !border-transparent">
-                مشاهده پروفایل
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="p-4 bg-[var(--surface-muted)] border-b border-[var(--border)]">
-            <p className="text-sm text-[var(--text-secondary)] mb-3">برای دسترسی به امکانات بیشتر وارد شوید</p>
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onShowAuthModal();
-              }}
-              className="w-full px-4 py-2.5 rounded-[var(--radius-md)] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors font-semibold shadow-sm"
-            >
-              ورود / ثبت نام
-            </button>
-          </div>
-        )}
-
-        <nav className="mobile-menu-drawer__nav" aria-label="ناوبری موبایل">
-          {SITE_NAV.map((item) => {
-            const active = navIsActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-4 py-3 font-medium transition-colors ${
-                  active
-                    ? 'text-[var(--primary-hover)] bg-[var(--primary-muted)] border-s-2 border-[var(--primary)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface-muted)]'
-                }`}
-                onClick={onClose}
-                aria-current={active ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-
-          {isAuthenticated && (
-            <>
-              <div className="my-2 border-t border-[var(--border)]" />
-              
-              <Link
-                href="/orders"
-                className="flex items-center px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors rounded-none"
-                onClick={onClose}
-              >
-                <svg className="w-5 h-5 ml-3 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span className="font-medium">سفارشات من</span>
-              </Link>
-
-              <Link
-                href="/wishlist"
-                className="flex items-center px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors rounded-none"
-                onClick={onClose}
-              >
-                <svg className="w-5 h-5 ml-3 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <span className="font-medium">لیست علاقه‌مندی‌ها</span>
-              </Link>
-            </>
-          )}
-        </nav>
-
-        {/* Logout Button */}
-        {isAuthenticated && (
-          <div className="p-4 border-t border-[var(--border)] bg-[var(--surface-muted)]/50 mt-auto">
-            <button
-              type="button"
-              onClick={() => {
-                onLogout();
-                onClose();
-              }}
-              className="w-full flex items-center justify-center px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
-            >
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              خروج از حساب
-            </button>
-          </div>
-        )}
-        </div>
-      </aside>
-    </div>,
-    document.body
-  );
-};
-
 // Header Component
 export const Header: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const megaMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab] = useState<'login' | 'register'>('login');
@@ -467,19 +299,39 @@ export const Header: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthContext();
 
   useEffect(() => {
-    setIsMenuOpen(false);
     setIsSearchOpen(false);
+    setIsMegaMenuOpen(false);
   }, [pathname]);
 
-  // بستن منوی موبایل هنگام رسیدن به breakpoint دسکتاپ
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
-    const onChange = () => {
-      if (mq.matches) setIsMenuOpen(false);
-    };
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+  const openMegaMenu = useCallback(() => {
+    if (megaMenuCloseTimer.current) {
+      clearTimeout(megaMenuCloseTimer.current);
+      megaMenuCloseTimer.current = null;
+    }
+    setIsMegaMenuOpen(true);
+    setIsUserDropdownOpen(false);
+    setIsNotificationsOpen(false);
+  }, []);
+
+  const closeMegaMenu = useCallback(() => {
+    setIsMegaMenuOpen(false);
+  }, []);
+
+  const scheduleMegaMenuClose = useCallback(() => {
+    if (megaMenuCloseTimer.current) {
+      clearTimeout(megaMenuCloseTimer.current);
+    }
+    megaMenuCloseTimer.current = setTimeout(() => {
+      setIsMegaMenuOpen(false);
+      megaMenuCloseTimer.current = null;
+    }, 200);
+  }, []);
+
+  const cancelMegaMenuClose = useCallback(() => {
+    if (megaMenuCloseTimer.current) {
+      clearTimeout(megaMenuCloseTimer.current);
+      megaMenuCloseTimer.current = null;
+    }
   }, []);
 
   // Load sample notifications and issues
@@ -532,7 +384,6 @@ export const Header: React.FC = () => {
   }, []);
 
   const handleUserIconClick = () => {
-    setIsMenuOpen(false);
     setIsSearchOpen(false);
     if (isAuthenticated) {
       setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -590,7 +441,11 @@ export const Header: React.FC = () => {
 
   return (
     <>
-    <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-[0_1px_3px_0_rgb(15_23_42_/_0.06)]">
+    <header
+      className={`sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-[0_1px_3px_0_rgb(15_23_42_/_0.06)]${isMegaMenuOpen ? ' header--mega-open' : ''}`}
+      onMouseEnter={cancelMegaMenuClose}
+      onMouseLeave={scheduleMegaMenuClose}
+    >
       {/* Issues Banner */}
       {systemIssues.length > 0 && (
         <div className={`border-b ${
@@ -617,7 +472,7 @@ export const Header: React.FC = () => {
                     ? 'text-red-800' 
                     : getHighestSeverity() === 'high'
                     ? 'text-yellow-800'
-                    : 'text-emerald-900'
+                    : 'text-blue-900'
                 }`}>
                   {process.env.NODE_ENV === 'development' ? 'مشکلات سیستم:' : 'اطلاعیه مهم:'}
                 </span>
@@ -626,7 +481,7 @@ export const Header: React.FC = () => {
                     ? 'text-red-700' 
                     : getHighestSeverity() === 'high'
                     ? 'text-yellow-700'
-                    : 'text-emerald-800'
+                    : 'text-blue-800'
                 }`}>
                   {systemIssues[0].title}
                 </span>
@@ -636,7 +491,7 @@ export const Header: React.FC = () => {
                       ? 'text-red-600' 
                       : getHighestSeverity() === 'high'
                       ? 'text-yellow-600'
-                      : 'text-emerald-700'
+                      : 'text-blue-700'
                   }`}>
                     +{systemIssues.length - 1}
                   </span>
@@ -688,12 +543,22 @@ export const Header: React.FC = () => {
           </div>
 
           <nav className="hidden lg:flex items-center gap-0.5 shrink-0 ms-2 xl:ms-4" aria-label="ناوبری اصلی">
-            {SITE_NAV.map((item) => (
+            <Link
+              href="/"
+              className={`header-nav-link ${navIsActive(pathname, '/') ? 'header-nav-link--active' : ''}`}
+              aria-current={navIsActive(pathname, '/') ? 'page' : undefined}
+              onMouseEnter={closeMegaMenu}
+            >
+              خانه
+            </Link>
+            <CategoriesMegaMenuTrigger isOpen={isMegaMenuOpen} onOpen={openMegaMenu} />
+            {SITE_NAV_AFTER_CATEGORIES.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`header-nav-link ${navIsActive(pathname, item.href) ? 'header-nav-link--active' : ''}`}
                 aria-current={navIsActive(pathname, item.href) ? 'page' : undefined}
+                onMouseEnter={closeMegaMenu}
               >
                 {item.label}
               </Link>
@@ -757,12 +622,12 @@ export const Header: React.FC = () => {
               </svg>
             </Link>
 
-            <button type="button" className="header-icon-btn relative hidden sm:inline-flex" title="سبد خرید" aria-label="سبد خرید">
+            <Link href="/cart" className="header-icon-btn relative hidden sm:inline-flex" title="سبد خرید" aria-label="سبد خرید">
               <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L4.9 18.6M7 13h10m0 0l1.8 5.6M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M6 8h12l-1.2 10.5a1.5 1.5 0 01-1.49 1.35H8.69a1.5 1.5 0 01-1.49-1.35L6 8z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 8V6a3 3 0 016 0v2" />
               </svg>
-              <Badge size="sm" className="absolute -top-1 -end-1 scale-75 sm:scale-100 !bg-[var(--primary)] !text-white">0</Badge>
-            </button>
+            </Link>
 
             <div className="relative notifications-dropdown hidden lg:block">
               <button
@@ -790,19 +655,6 @@ export const Header: React.FC = () => {
               />
             </div>
 
-            {!isAuthenticated && (
-              <button
-                type="button"
-                onClick={handleUserIconClick}
-                className="header-icon-btn header-mobile-only"
-                aria-label="ورود / ثبت نام"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </button>
-            )}
-
             <div className="relative user-dropdown hidden lg:block">
               {isAuthenticated ? (
                 <button
@@ -812,7 +664,7 @@ export const Header: React.FC = () => {
                   aria-expanded={isUserDropdownOpen}
                   aria-haspopup="true"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-full flex items-center justify-center shadow-sm ring-2 ring-[var(--primary-light)]">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center shadow-sm ring-2 ring-[var(--primary-light)]">
                     <span className="text-white text-xs sm:text-sm font-semibold">
                       {user?.firstName?.[0] || user?.email?.[0] || 'U'}
                     </span>
@@ -850,22 +702,6 @@ export const Header: React.FC = () => {
               />
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="header-icon-btn header-mobile-only"
-              aria-label={isMenuOpen ? 'بستن منو' : 'باز کردن منو'}
-              aria-expanded={isMenuOpen}
-            >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -910,21 +746,13 @@ export const Header: React.FC = () => {
           </div>
         )}
       </div>
-    </header>
 
-    <MobileMenu
-      isOpen={isMenuOpen}
-      onClose={() => setIsMenuOpen(false)}
-      pathname={pathname}
-      isAuthenticated={isAuthenticated}
-      user={user}
-      onLogout={handleLogout}
-      onShowAuthModal={() => {
-        setIsMenuOpen(false);
-        setIsSearchOpen(false);
-        setIsAuthModalOpen(true);
-      }}
-    />
+      {isMegaMenuOpen && (
+        <div className="hidden lg:block">
+          <CategoriesMegaMenuPanel onClose={closeMegaMenu} />
+        </div>
+      )}
+    </header>
 
     <AuthModal
       isOpen={isAuthModalOpen}

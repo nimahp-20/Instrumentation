@@ -68,7 +68,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   {primaryButtonText}
                 </Button>
               </Link>
-              <Link href="/#categories" className="w-full sm:w-auto">
+              <Link href="/categories" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="outline"

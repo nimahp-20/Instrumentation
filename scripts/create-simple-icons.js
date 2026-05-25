@@ -4,7 +4,7 @@ console.log('🎨 Creating Simple PWA Icons');
 console.log('============================');
 
 // Create simple colored PNG-like icons using base64
-function createSimpleIcon(size, color = '#059669') {
+function createSimpleIcon(size, color = '#228be6') {
   // This creates a simple colored square icon
   // In a real app, you'd want to use a proper image library like sharp or canvas
   

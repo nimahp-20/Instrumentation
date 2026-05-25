@@ -71,7 +71,7 @@ export default function ShippingPage() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center">
-                    <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="text-slate-700">زمان: {method.duration}</span>
@@ -105,7 +105,7 @@ export default function ShippingPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-700">ارسال رایگان:</span>
-                    <span className="font-medium text-green-600">{area.freeShipping}</span>
+                    <span className="font-medium text-blue-600">{area.freeShipping}</span>
                   </div>
                 </div>
               </div>
@@ -128,7 +128,7 @@ export default function ShippingPage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">آماده‌سازی</h3>

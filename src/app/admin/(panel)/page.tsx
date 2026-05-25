@@ -126,7 +126,7 @@ export default function AdminDashboardPage() {
                 {stats?.products != null ? stats.products.toLocaleString('fa-IR') : '—'}{' '}
                 <span className="text-lg font-semibold text-white/80">محصول فعال</span>
               </p>
-              <p className="text-emerald-200 text-sm mt-2 flex items-center gap-1">
+              <p className="text-blue-200 text-sm mt-2 flex items-center gap-1">
                 <span className="inline-flex rounded-full bg-white/20 px-2 py-0.5 text-xs">+ مدیریت موجودی</span>
                 {stats?.lowStock != null && stats.lowStock > 0 && (
                   <span className="text-amber-200">{stats.lowStock.toLocaleString('fa-IR')} کالا با موجودی کم</span>
